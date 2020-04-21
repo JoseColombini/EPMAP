@@ -9,7 +9,7 @@
 import math
 import numpy as np
 import os
-import matplotlib as matplot
+import matplotlib as plot
 import time
 import datetime
 import os
@@ -74,15 +74,15 @@ def main():
 ##Calculo aproximada
 ########
     #condicoes de fronteiras
-    for k in range(1, M):
+    for k in range(1, M + 1):
         uik_array[k][0] = g0()
         uik_array[k][N] = gn()
     #condicao inicial
-    for i in range(N):
+    for i in range(N + 1):
         uik_array[0][i] = ui()
     #laco para calcular os elementos depois de dada as condicoes inciais
-    for k in range(M - 1):
-        for i in range(1, N - 1):
+    for k in range(M):
+        for i in range(1, N):
             uik_array[k + 1][i] = uik_array[k][i] + Dt((uik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + f(Dx*i, Dt*k))
 
 ##########
@@ -97,15 +97,19 @@ def main():
 ###########
 
     #calculo do truncamento
-    for k in range(M + 1)
+    for k in range(M):
+        for i in range(1, N):
+            tik_array[k][i] = ((true_uik_array[k+1][i] - true_uik_array[k][i])/Dt) -((true_uik_array[k][i - 1] - 2*true_uik_array[k][i] + true_uik_array[k][i + 1])/(Dx**2)) - (f(Dx*i, Dt*k))
 
     #Calculo do erro
-    for k in range(M - 1):
-        for i in range(1, N - 1):
-            eik_array[k + 1][i] = eik_array[k][i] + Dt((eik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + tik_array[k][i] )
+    for k in range(M):
+        for i in range(1, N):
+            eik_array[k + 1][i] = eik_array[k][i] + Dt*((eik_array[k][i - 1] - 2*eik_array[k][i] + eik_array[k][i + 1])/(Dx*Dx) + tik_array[k][i] )
 
     #erro normalizado
     enorm = math.abs(np.amax(eik_array, axis = 0))
+
+
 
 
 
