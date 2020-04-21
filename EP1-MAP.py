@@ -21,8 +21,8 @@ X = 1
 #funcao qeu insere calor
 def f (x,t):
     #f = 10*x*x*(x - 1) - 60*x*t + 20*t
-
-    return f
+    r = 0
+    return r
 
 #funcoes de condicao de contor, g sao as fronteira ui é a inicial
 def g0():
@@ -55,16 +55,17 @@ def main():
     #Each line is a bar in one moment
     #So each colum is a position in the bar
     #uik_array(2, 5) is the point 5 of the bar at the moment 2
-    uik_array = np.zeros((M + 1, N + 1))    #uik aproximado
-    true_uik_array = np.zeros((M + 1, N + 1)) #uik real
+    uik_array = np.zeros((M + 1, N + 1), dtype = np.float64)    #uik aproximado
+    true_uik_array = np.zeros((M + 1, N + 1), dtype = np.float64) #uik real
     #matriz de erros
-    eik_array = np.zeros((M + 1, N + 1))
+    eik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
     #matriz de truncamento
-    tik_array = np.zeros((M + 1, N + 1))
+    tik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
 #Talvez possamos eliminar uma linha e 2 colunas de cada uma dos arrays de erro e truncamento, mas resolvi manter para ser diretamente endereçados a matriz de resultado aproximado
 
 
     #metodo 11
+    #fix = 0. #inserção de calor
     i = 0 #iterator for space
     k = 0 #iterator for time
 
@@ -83,7 +84,8 @@ def main():
     #laco para calcular os elementos depois de dada as condicoes inciais
     for k in range(M):
         for i in range(1, N):
-            uik_array[k + 1][i] = uik_array[k][i] + Dt((uik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + f(Dx*i, Dt*k))
+            #fix = f(Dx*i, Dt*k)
+            uik_array[k + 1][i] = uik_array[k][i] + Dt*((uik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + f(Dx*i, Dt*k))
 
 ##########
 ##Calculo exato
@@ -107,8 +109,9 @@ def main():
             eik_array[k + 1][i] = eik_array[k][i] + Dt*((eik_array[k][i - 1] - 2*eik_array[k][i] + eik_array[k][i + 1])/(Dx*Dx) + tik_array[k][i] )
 
     #erro normalizado
-    enorm = math.abs(np.amax(eik_array, axis = 0))
-
+    enorm = np.zeros((M + 1, N + 1), dtype = np.float64)
+    enorm = np.absolute(np.amax(eik_array, axis = 0))
+    print(enorm)
 
 
 
