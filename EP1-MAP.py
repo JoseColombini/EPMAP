@@ -24,12 +24,18 @@ def f (x,t):
 
     return f
 
+#funcoes de condicao de contor, g sao as fronteira ui é a inicial
 def g0():
     return 0
 def gn():
     return 0
 def ui():
     return 0
+
+def u (x, t):
+    #f =
+    f = 0
+    return f
 
 
 def main():
@@ -49,7 +55,8 @@ def main():
     #Each line is a bar in one moment
     #So each colum is a position in the bar
     #uik_array(2, 5) is the point 5 of the bar at the moment 2
-    uik_array = np.zeros((M + 1, N + 1))
+    uik_array = np.zeros((M + 1, N + 1))    #uik aproximado
+    true_uik_array = np.zeros((M + 1, N + 1)) #uik real
     #matriz de erros
     eik_array = np.zeros((M + 1, N + 1))
     #matriz de truncamento
@@ -58,12 +65,14 @@ def main():
 
 
     #metodo 11
-    i = 1 #iterator for space
+    i = 0 #iterator for space
     k = 0 #iterator for time
 
     #para condincao inicial
 
-
+###########
+##Calculo aproximada
+########
     #condicoes de fronteiras
     for k in range(1, M):
         uik_array[k][0] = g0()
@@ -75,6 +84,20 @@ def main():
     for k in range(M - 1):
         for i in range(1, N - 1):
             uik_array[k + 1][i] = uik_array[k][i] + Dt((uik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + f(Dx*i, Dt*k))
+
+##########
+##Calculo exato
+##########
+    for k in range(M + 1):
+        for i in range(N + 1):
+            true_uik_array[k][i] = u(Dx*i, Dt*k)
+
+#########
+##Calculo dos erros e truncamentos
+###########
+
+    #calculo do truncamento
+    for k in range(M + 1)
 
     #Calculo do erro
     for k in range(M - 1):
