@@ -15,6 +15,8 @@ import datetime
 import os
 import sys
 import pathlib
+from numba import jit
+
 
 maypath = pathlib.Path(__file__).parent.absolute()
 
@@ -22,6 +24,7 @@ T = 1 #Ex 1
 X = 1
 
 #funcao qeu insere calor
+@jit(nopython=True)
 def f (x,t):
     r = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)
     #r = 10*x*x*(x - 1) - 60*x*t + 20*t
@@ -29,14 +32,18 @@ def f (x,t):
     return r
 
 #funcoes de condicao de contor, g sao as fronteira ui é a inicial
+@jit(nopython=True)
 def g0():
     return 0
+@jit(nopython=True)
 def gn():
     return 0
+@jit(nopython=True)
 def ui(x):
     u = x*x*(1 - x)**2
     return u
 
+@jit(nopython=True)
 def u (x, t):
     f = (1 + math.sin(10*t))*x*x*(1 - x)**2
     #f = 10*t*x*x*(x - 1)
@@ -44,10 +51,60 @@ def u (x, t):
     return f
 
 
+
+@jit(nopython=True)
+def resolution(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
+    #metodo 11
+    #fix = 0. #inserção de calor
+    i = 0 #iterator for space
+    k = 0 #iterator for time
+
+    #para condincao inicial
+
+###########
+##Calculo aproximada
+########
+    #condicoes de fronteiras
+    for k in range(1, M + 1):
+        uik_array[k][0] = g0()
+        uik_array[k][N] = gn()
+    #condicao inicial
+    for i in range(N + 1):
+        uik_array[0][i] = ui(Dx*i)
+    #laco para calcular os elementos depois de dada as condicoes inciais
+    for k in range(M):
+        for i in range(1, N):
+            #fix = f(Dx*i, Dt*k)
+            uik_array[k + 1][i] = uik_array[k][i] + Dt*((uik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + f(Dx*i, Dt*k))
+
+##########
+##Calculo exato
+##########
+    for k in range(M + 1):
+        for i in range(N + 1):
+            true_uik_array[k][i] = u(Dx*i, Dt*k)
+
+#########
+##Calculo dos erros e truncamentos
+###########
+
+    #calculo do truncamento
+    for k in range(M):
+        for i in range(1, N):
+            tik_array[k][i] = ((true_uik_array[k+1][i] - true_uik_array[k][i])/Dt) -((true_uik_array[k][i - 1] - 2*true_uik_array[k][i] + true_uik_array[k][i + 1])/(Dx**2)) - (f(Dx*i, Dt*k))
+
+    #Calculo do erro
+    for k in range(M):
+        for i in range(1, N):
+            eik_array[k + 1][i] = eik_array[k][i] + Dt*((eik_array[k][i - 1] - 2*eik_array[k][i] + eik_array[k][i + 1])/(Dx*Dx) + tik_array[k][i] )
+
+
+
+
 def main():
     for lambd in np.arange(0.25, 0.51, 0.25):
         N = 10
-        while N < 161:
+        while N <= 320:
             temp = time.time()
             #Input of number of divisions
             #N = int(input("Insert the number of x fraction (N): "))
@@ -79,50 +136,7 @@ def main():
             tik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
         #Talvez possamos eliminar uma linha e 2 colunas de cada uma dos arrays de erro e truncamento, mas resolvi manter para ser diretamente endereçados a matriz de resultado aproximado
 
-
-            #metodo 11
-            #fix = 0. #inserção de calor
-            i = 0 #iterator for space
-            k = 0 #iterator for time
-
-            #para condincao inicial
-
-        ###########
-        ##Calculo aproximada
-        ########
-            #condicoes de fronteiras
-            for k in range(1, M + 1):
-                uik_array[k][0] = g0()
-                uik_array[k][N] = gn()
-            #condicao inicial
-            for i in range(N + 1):
-                uik_array[0][i] = ui(Dx*i)
-            #laco para calcular os elementos depois de dada as condicoes inciais
-            for k in range(M):
-                for i in range(1, N):
-                    #fix = f(Dx*i, Dt*k)
-                    uik_array[k + 1][i] = uik_array[k][i] + Dt*((uik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + f(Dx*i, Dt*k))
-
-        ##########
-        ##Calculo exato
-        ##########
-            for k in range(M + 1):
-                for i in range(N + 1):
-                    true_uik_array[k][i] = u(Dx*i, Dt*k)
-
-        #########
-        ##Calculo dos erros e truncamentos
-        ###########
-
-            #calculo do truncamento
-            for k in range(M):
-                for i in range(1, N):
-                    tik_array[k][i] = ((true_uik_array[k+1][i] - true_uik_array[k][i])/Dt) -((true_uik_array[k][i - 1] - 2*true_uik_array[k][i] + true_uik_array[k][i + 1])/(Dx**2)) - (f(Dx*i, Dt*k))
-
-            #Calculo do erro
-            for k in range(M):
-                for i in range(1, N):
-                    eik_array[k + 1][i] = eik_array[k][i] + Dt*((eik_array[k][i - 1] - 2*eik_array[k][i] + eik_array[k][i + 1])/(Dx*Dx) + tik_array[k][i] )
+            resolution(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt)
 
             #erro normalizado
             enorm = np.zeros((M + 1, 1), dtype = np.float64)
