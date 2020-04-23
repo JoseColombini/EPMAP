@@ -26,34 +26,36 @@ X = 1
 #funcao qeu insere calor
 @jit(nopython=True)
 def f (x,t):
-    r = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)
-    #r = 10*x*x*(x - 1) - 60*x*t + 20*t
-    #r = 0
-    return r
-
-#funcoes de condicao de contor, g sao as fronteira ui é a inicial
-@jit(nopython=True)
-def g0():
-    return 0
-@jit(nopython=True)
-def gn():
-    return 0
-@jit(nopython=True)
-def ui(x):
-    u = x*x*(1 - x)**2
-    return u
-
-@jit(nopython=True)
-def u (x, t):
-    f = (1 + math.sin(10*t))*x*x*(1 - x)**2
-    #f = 10*t*x*x*(x - 1)
+    f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))
+    #f = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)         #a
+    #f = 10*x*x*(x - 1) - 60*x*t + 20*t                                                     #extra
     #f = 0
     return f
 
+#funcoes de condicao de contor, g sao as fronteira ui é a inicial
+# @jit(nopython=True)
+# def g0():
+#     return 0
+# @jit(nopython=True)
+# def gn():
+#     return 0
+# @jit(nopython=True)
+# def ui(x):
+#     u = x*x*(1 - x)**2
+#     return u
+
+@jit(nopython=True)
+def u (x, t):
+    u = math.exp(t - x)*math.cos(5*t*x)                                         #b
+    #u = (1 + math.sin(10*t))*x*x*(1 - x)**2                                    #a
+    #u = 10*t*x*x*(x - 1)
+    #u = 0
+    return u
+
 
 
 @jit(nopython=True)
-def resolution(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
+def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
     #metodo 11
     #fix = 0. #inserção de calor
     i = 0 #iterator for space
@@ -66,11 +68,11 @@ def resolution(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
 ########
     #condicoes de fronteiras
     for k in range(1, M + 1):
-        uik_array[k][0] = g0()
-        uik_array[k][N] = gn()
+        uik_array[k][0] = u(0, k*Dt)
+        uik_array[k][N] = u(N*Dx, k*Dt)
     #condicao inicial
     for i in range(N + 1):
-        uik_array[0][i] = ui(Dx*i)
+        uik_array[0][i] = u(Dx*i, 0)
     #laco para calcular os elementos depois de dada as condicoes inciais
     for k in range(M):
         for i in range(1, N):
@@ -102,7 +104,8 @@ def resolution(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
 
 
 def main():
-    for lambd in np.arange(0.25, 0.51, 0.25):
+    llist = [0.25, 0.5, 0.51]
+    for lambd in llist:#(0.25, 0.51, 0.25):
         N = 10
         while N <= 320:
             temp = time.time()
@@ -136,7 +139,7 @@ def main():
             tik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
         #Talvez possamos eliminar uma linha e 2 colunas de cada uma dos arrays de erro e truncamento, mas resolvi manter para ser diretamente endereçados a matriz de resultado aproximado
 
-            resolution(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt)
+            resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt)
 
             #erro normalizado
             enorm = np.zeros((M + 1, 1), dtype = np.float64)
