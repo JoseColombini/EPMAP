@@ -133,10 +133,11 @@ def main():
             #figura 1
             plt.figure(1)
             #plot do estado final aproximado
-            plt.subplot(121)
+            plt.subplot(131)
             plt.title('Temperatura')
-            plt.plot(yaxis, uik_array[M], 'r', label = 'aproximado')
-            plt.plot(yaxis, true_uik_array[M], 'b', label= 'exato')
+            for k in range(0, M + 1, M/10):
+                plt.plot(yaxis, uik_array[k], 'r', label = 'aproximado')
+                plt.plot(yaxis, true_uik_array[k], 'b', label= 'exato')
             plt.legend()
             plt.xlabel('Posição na barra')
             plt.ylabel('temperatura')
@@ -149,9 +150,8 @@ def main():
             plt.savefig(str(maypath) + '/Images/GN = ' + str(N) + ', L = ' + str(lambd) + '.png')
 
             #figura 2 (erro)
-            plt.figure(2)
             #plot do erro ao longo da barra
-            plt.subplot(221)
+            plt.subplot(132)
             plt.title('Erro ao longo da barra no instante T \n')
             plt.plot(yaxis, eik_array[M], 'b', label = 'erro')
             plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
@@ -159,7 +159,7 @@ def main():
             plt.ylabel('erro')
             plt.legend()
             #plot do erro normalizado ao longo do tempo
-            plt.subplot(222)
+            plt.subplot(133)
             plt.title('Erro normalizado ao longo do tempo \n')
             plt.plot(np.arange(M+1),enorm)
             plt.xlabel('instante')

@@ -26,8 +26,8 @@ X = 1
 #funcao qeu insere calor
 @jit(nopython=True)
 def f (x,t):
-    f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))
-    #f = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)         #a
+    #f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))       #b
+    f = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)        #a
     #f = 10*x*x*(x - 1) - 60*x*t + 20*t                                                     #extra
     #f = 0
     return f
@@ -46,8 +46,8 @@ def f (x,t):
 
 @jit(nopython=True)
 def u (x, t):
-    u = math.exp(t - x)*math.cos(5*t*x)                                         #b
-    #u = (1 + math.sin(10*t))*x*x*(1 - x)**2                                    #a
+    #u = math.exp(t - x)*math.cos(5*t*x)                                         #b
+    u = (1 + math.sin(10*t))*x*x*(1 - x)**2                                    #a
     #u = 10*t*x*x*(x - 1)
     #u = 0
     return u
@@ -143,15 +143,18 @@ def main():
 
             #erro normalizado
             enorm = np.zeros((M + 1, 1), dtype = np.float64)
-            enorm = np.absolute(np.amax(eik_array, axis = 1)) #normalizado esta estranho
+            enorm = np.amax(np.absolute(eik_array), axis = 1) #normalizado esta estranho
 
 
             yaxis = np.arange(N+1)
             #figura 1
             plt.figure(1)
             #plot do estado final aproximado
-            plt.subplot(121)
+            plt.subplot(131)
             plt.title('Temperatura')
+            for k in range(0, M, int(M/10)):
+                plt.plot(yaxis, uik_array[k], 'r')
+                plt.plot(yaxis, true_uik_array[k], 'b')
             plt.plot(yaxis, uik_array[M], 'r', label = 'aproximado')
             plt.plot(yaxis, true_uik_array[M], 'b', label= 'exato')
             plt.legend()
@@ -163,12 +166,9 @@ def main():
             #
             # plt.xlabel('Posição na barra')
             # plt.ylabel('temperatura')
-            plt.savefig(str(maypath) + '/Images/GN = ' + str(N) + ', L = ' + str(lambd) + '.png')
 
-            #figura 2 (erro)
-            plt.figure(2)
             #plot do erro ao longo da barra
-            plt.subplot(221)
+            plt.subplot(132)
             plt.title('Erro ao longo da barra no instante T \n')
             plt.plot(yaxis, eik_array[M], 'b', label = 'erro')
             plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
@@ -176,15 +176,15 @@ def main():
             plt.ylabel('erro')
             plt.legend()
             #plot do erro normalizado ao longo do tempo
-            plt.subplot(222)
+            plt.subplot(133)
             plt.title('Erro normalizado ao longo do tempo \n')
             plt.plot(np.arange(M+1),enorm)
             plt.xlabel('instante')
             plt.ylabel('erro')
-            plt.savefig(str(maypath) + '/Images/ErroN = ' + str(N) + ', L = ' + str(lambd) + '.png')
+            plt.savefig(str(maypath) + '/Images/Grafs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
             plt.close('all')
             #show pyplot
-            #plt.show()
+            plt.show()
             N = 2*N
             print(temp - time.time())
 
