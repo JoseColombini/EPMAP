@@ -143,13 +143,18 @@ def main():
             tik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
         #Talvez possamos eliminar uma linha e 2 colunas de cada uma dos arrays de erro e truncamento, mas resolvi manter para ser diretamente endereçados a matriz de resultado aproximado
 
-            A_arrary = np.zeros((2, N - 1), dtype = np.float64)
+            A_P_arrary = np.zeros((N - 1), dtype = np.float64)
+            A_S_arrary = np.zeros((N - 1), dtype = np.float64)
             #building A_arrary
             for i in range(N - 1):
-                for k in range(2):
-                    A_arrary[k][i]
+                A_P_arrary[i] = 1 + 2*lambd
+            for i in range(1, N - 1):
+                A_S_arrary[i] = -lambd
 
             resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt)
+
+
+
 
             #erro normalizado
             enorm = np.zeros((M + 1, 1), dtype = np.float64)
