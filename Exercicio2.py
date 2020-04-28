@@ -102,6 +102,10 @@ def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
 
 
 
+#exercicio 2
+def LDL():
+
+
 
 def main():
     llist = [0.25, 0.5, 0.51]
@@ -138,6 +142,12 @@ def main():
             #matriz de truncamento
             tik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
         #Talvez possamos eliminar uma linha e 2 colunas de cada uma dos arrays de erro e truncamento, mas resolvi manter para ser diretamente endereçados a matriz de resultado aproximado
+
+            A_arrary = np.zeros((2, N - 1), dtype = np.float64)
+            #building A_arrary
+            for i in range(N - 1):
+                for k in range(2):
+                    A_arrary[k][i]
 
             resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt)
 
