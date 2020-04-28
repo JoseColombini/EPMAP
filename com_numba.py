@@ -140,7 +140,7 @@ def main():
 
             #erro normalizado
             enorm = np.zeros((M + 1, 1), dtype = np.float64)
-            enorm = np.absolute(np.amax(eik_array, axis = 1)) #normalizado esta estranho
+            enorm = np.amax(np.absolute(eik_array, axis = 1)) #normalizado esta estranho
 
 
             yaxis = np.arange(N+1)
