@@ -103,7 +103,32 @@ def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
 
 
 #exercicio 2
-def LDL():
+def Decomp_LD(A_P_arrary, A_S_arrary, L_arrary, D_arrary, N):
+    D_arrary[0] = A_P_arrary[0]
+    for i in range(1, N - 1):
+        L_arrary[i] = A_S_arrary[i]/D_arrary[i - 1]
+        D_arrary[i] = A_P_arrary[i] - L_arrary[i]**2*D_arrary[i]
+
+def Solving_LD(L_arrary, D_arrary, b_array, N):
+
+    X1 = np.zeros((N - 1), dtype = np.float64)
+    X2 = np.zeros((N - 1), dtype = np.float64)
+    X3 = np.zeros((N - 1), dtype = np.float64)
+
+    X1[0] = b_array[0]
+    for i in range(1, N - 1):
+        X1[i] = b_array[i] - L_arrary[i]*X1[i - 1]
+
+    for i in range(N - 1):
+        X2[i] = X1[i]/D_arrary[i]
+
+    X3[N - 1] = X2[N - 1]
+    for i in range(N - 2, -1, -1):
+        X3[i] = X2[i] - L[i + 1]*X3[i + 1]
+
+    return X3
+
+
 
 
 
@@ -145,11 +170,20 @@ def main():
 
             A_P_arrary = np.zeros((N - 1), dtype = np.float64)
             A_S_arrary = np.zeros((N - 1), dtype = np.float64)
+            D_arrary = np.zeros((N - 1), dtype = np.float64)
+            L_arrary = np.zeros((N - 1), dtype = np.float64)
+
             #building A_arrary
             for i in range(N - 1):
                 A_P_arrary[i] = 1 + 2*lambd
             for i in range(1, N - 1):
                 A_S_arrary[i] = -lambd
+
+            Decomp_LD(A_P_arrary, A_S_arrary, L_arrary, D_arrary, N)
+
+
+        #    Solving_LD(L_arrary, D_arraryr, uik_array[i])
+
 
             resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt)
 
