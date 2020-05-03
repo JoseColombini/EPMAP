@@ -103,37 +103,112 @@ def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
 
 
 #exercicio 2
+@jit(nopython=True)
 def Decomp_LD(A_P_arrary, A_S_arrary, L_arrary, D_arrary, N):
     D_arrary[0] = A_P_arrary[0]
     for i in range(1, N - 1):
         L_arrary[i] = A_S_arrary[i]/D_arrary[i - 1]
-        D_arrary[i] = A_P_arrary[i] - L_arrary[i]**2*D_arrary[i]
+        D_arrary[i] = A_P_arrary[i] - L_arrary[i]**2*D_arrary[i - 1]
 
-def Solving_LD(L_arrary, D_arrary, b_array, N):
+
+@jit(nopython=True)
+def Solving_LD(L_arrary, D_arrary, b_array, N, X3):
 
     X1 = np.zeros((N - 1), dtype = np.float64)
     X2 = np.zeros((N - 1), dtype = np.float64)
-    X3 = np.zeros((N - 1), dtype = np.float64)
 
     X1[0] = b_array[0]
     for i in range(1, N - 1):
         X1[i] = b_array[i] - L_arrary[i]*X1[i - 1]
 
+
     for i in range(N - 1):
         X2[i] = X1[i]/D_arrary[i]
 
-    X3[N - 1] = X2[N - 1]
-    for i in range(N - 2, -1, -1):
-        X3[i] = X2[i] - L[i + 1]*X3[i + 1]
 
-    return X3
+    X3[N - 2] = X2[N - 2]
+    for i in range(N - 3, -1, -1):
+        X3[i] = X2[i] - L_arrary[i + 1]*X3[i + 1]
 
+
+@jit(nopython=True)
+def euler(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, Dt, Dx, lambd):
+
+    b_array = np.zeros((N - 1), dtype = np.float64)
+    X3 = np.zeros((N - 1), dtype = np.float64)
+
+    for i in range(N - 1):
+        A_P_arrary[i] = 1 + 2*lambd
+    for i in range(1, N - 1):
+        A_S_arrary[i] = -lambd
+
+
+    #COndicoes inicias
+    for i in range(N + 1):
+        uik_array[0][i] = u(Dx*i, 0)
+    #condicao de contorno
+    for k in range(1, M + 1):
+        uik_array[k][0] = u(0, k*Dt)
+        uik_array[k][N] = u(N*Dx, k*Dt)
+
+    #resolvendo euler implicito
+    Decomp_LD(A_P_arrary, A_S_arrary, L_arrary, D_arrary, N)
+
+    for k in range(0, M):
+        for i in range(N - 1):
+            if i == 0:
+                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1)) + uik_array[k][i + 1] + lambd*u(0, (k+1)*Dt)
+            elif i == (N - 2):
+                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1)) + uik_array[k][i + 1] + lambd*uik_array[k + 1][N]
+            else:
+                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1)) + uik_array[k][i + 1]
+
+        Solving_LD(L_arrary, D_arrary, b_array, N, X3)
+        for t in range(N - 1):
+            uik_array[k + 1][t + 1] = X3[t]
+
+
+@jit(nopython=True)
+def crankNicolson(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, Dt, Dx, lambd):
+
+    b_array = np.zeros((N - 1), dtype = np.float64)
+    X3 = np.zeros((N - 1), dtype = np.float64)
+
+    for i in range(N - 1):
+        A_P_arrary[i] = 1 + lambd
+    for i in range(1, N - 1):
+        A_S_arrary[i] = -lambd/2
+
+
+    #COndicoes inicias
+    for i in range(N + 1):
+        uik_array[0][i] = u(Dx*i, 0)
+    #condicao de contorno
+    for k in range(1, M + 1):
+        uik_array[k][0] = u(0, k*Dt)
+        uik_array[k][N] = u(N*Dx, k*Dt)
+
+    #resolvendo euler implicito
+    Decomp_LD(A_P_arrary, A_S_arrary, L_arrary, D_arrary, N)
+
+    for k in range(0, M):
+        for i in range(N - 1):
+            if i == 0:
+                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1)) + f(Dx*(i + 1), Dt*k)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2]) + (lambd/2)*uik_array[k + 1][0]
+            elif i == (N - 2):
+                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1)) + f(Dx*(i + 1), Dt*k)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2]) + (lambd/2)*uik_array[k + 1][N]
+            else:
+                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1)) + f(Dx*(i + 1), Dt*k)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2])
+
+        Solving_LD(L_arrary, D_arrary, b_array, N, X3)
+        for t in range(N - 1):
+            uik_array[k + 1][t + 1] = X3[t]
 
 
 
 
 def main():
-    llist = [0.25, 0.5, 0.51]
+    llist = [1, 0.5, 0.25, 0.51]
     for lambd in llist:#(0.25, 0.51, 0.25):
         N = 10
         while N <= 320:
@@ -161,6 +236,8 @@ def main():
             #So each colum is a position in the bar
             #uik_array(2, 5) is the point 5 of the bar at the moment 2
             uik_array = np.zeros((M + 1, N + 1), dtype = np.float64)    #uik aproximado
+            e_uik_array = np.zeros((M + 1, N + 1), dtype = np.float64)  #euler uik
+            c_uik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
             true_uik_array = np.zeros((M + 1, N + 1), dtype = np.float64) #uik real
             #matriz de erros
             eik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
@@ -174,12 +251,9 @@ def main():
             L_arrary = np.zeros((N - 1), dtype = np.float64)
 
             #building A_arrary
-            for i in range(N - 1):
-                A_P_arrary[i] = 1 + 2*lambd
-            for i in range(1, N - 1):
-                A_S_arrary[i] = -lambd
+            euler(A_P_arrary, A_S_arrary, L_arrary, D_arrary, e_uik_array, N, M, Dt, Dx, lambd)
+            crankNicolson(A_P_arrary, A_S_arrary, L_arrary, D_arrary, c_uik_array, N, M, Dt, Dx, lambd)
 
-            Decomp_LD(A_P_arrary, A_S_arrary, L_arrary, D_arrary, N)
 
 
         #    Solving_LD(L_arrary, D_arraryr, uik_array[i])
@@ -201,11 +275,14 @@ def main():
             #plot do estado final aproximado
             plt.subplot(131)
             plt.title('Temperatura')
-            plt.plot(yaxis, uik_array[M], 'r', label = 'aproximado')
+            #plt.plot(yaxis, uik_array[M], 'r', label = 'aproximado')
+            plt.plot(yaxis, e_uik_array[M], 'g', label = 'euler')
+            plt.plot(yaxis, c_uik_array[M], 'y', label = 'nicolsol')
             plt.plot(yaxis, true_uik_array[M], 'b', label= 'exato')
             plt.legend()
             plt.xlabel('Posição na barra')
             plt.ylabel('temperatura')
+            plt.show()
             #plot do final exato
             # plt.subplot(122)
             # plt.title('Temperatura real')
@@ -214,23 +291,23 @@ def main():
             # plt.ylabel('temperatura')
 
             #plot do erro ao longo da barra
-            plt.subplot(132)
-            plt.title('Erro ao longo da barra no instante T \n')
-            plt.plot(yaxis, eik_array[M], 'b', label = 'erro')
-            plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
-            plt.xlabel('Posição na barra')
-            plt.ylabel('erro')
-            plt.legend()
-            #plot do erro normalizado ao longo do tempo
-            plt.subplot(133)
-            plt.title('Erro normalizado ao longo do tempo \n')
-            plt.plot(np.arange(M+1),enorm)
-            plt.xlabel('instante')
-            plt.ylabel('erro')
-            plt.savefig(str(maypath) + '/Images/Grafs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
-            plt.close('all')
-            #show pyplot
-            plt.show()
+            # plt.subplot(132)
+            # plt.title('Erro ao longo da barra no instante T \n')
+            # plt.plot(yaxis, eik_array[M], 'b', label = 'erro')
+            # plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
+            # plt.xlabel('Posição na barra')
+            # plt.ylabel('erro')
+            # plt.legend()
+            # #plot do erro normalizado ao longo do tempo
+            # plt.subplot(133)
+            # plt.title('Erro normalizado ao longo do tempo \n')
+            # plt.plot(np.arange(M+1),enorm)
+            # plt.xlabel('instante')
+            # plt.ylabel('erro')
+            # plt.savefig(str(maypath) + '/Images/Grafs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
+            # plt.close('all')
+            # #show pyplot
+            # plt.show()
             N = 2*N
             print(temp - time.time())
 
