@@ -1,9 +1,11 @@
-############Dúvidas###################
-#### a matriz da solucao aproximada uik_array tem dimensao (M + 1, N+1), pois a barra segundo o enunciado vai de 0 a N, se ela tivesse só dimensao
-# (M, N) a matriz ia ir de 0 a N - 1. Esta certo esse pensamento?
-### Raciocinio analago a dimensao M é aplicada pois a linha zero é o tempo inicial e a gente quer no momento M, logo M + 1 dimensao
-# portanto o laco deve ir ate M - 1 pois ai descobrimos o tempo M, certo?
-#
+"""""""""""""""""""""""""""""""""
+##### Exercicio 1 do EP1 #######
+    Este arquivo realiza o calculo dos valores para a aproximacao da temperatura da barra
+utilizando o método 11.
+    As funçoes f(x, t) e u(x, t) possuem as descricao tanto para o item a como para o item b,
+bastantdo apenas comentar a linha que nao sera utilizada e descomentar a linha que sera utilizada
+    Os erros e truncamentos tambem sao calculados neste arquivo.
+"""""""""""""""""""""""""""""""""
 
 
 import math
@@ -26,12 +28,13 @@ X = 1
 #funcao qeu insere calor
 @jit(nopython=True)
 def f (x,t):
-    #f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))       #b
-    f = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)        #a
+    f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))       #b
+    #f = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)        #a
     #f = 10*x*x*(x - 1) - 60*x*t + 20*t                                                     #extra
     #f = 0
     return f
 
+#Estas funcoes foram depreciadas após a utilizacao dos conceitos das equacoes 2, 3, 4 para simplificar o codigo
 #funcoes de condicao de contor, g sao as fronteira ui é a inicial
 # @jit(nopython=True)
 # def g0():
@@ -46,8 +49,8 @@ def f (x,t):
 
 @jit(nopython=True)
 def u (x, t):
-    #u = math.exp(t - x)*math.cos(5*t*x)                                         #b
-    u = (1 + math.sin(10*t))*x*x*(1 - x)**2                                    #a
+    u = math.exp(t - x)*math.cos(5*t*x)                                         #b
+    #u = (1 + math.sin(10*t))*x*x*(1 - x)**2                                    #a
     #u = 10*t*x*x*(x - 1)
     #u = 0
     return u
@@ -57,12 +60,7 @@ def u (x, t):
 @jit(nopython=True)
 def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
     #metodo 11
-    #fix = 0. #inserção de calor
-    i = 0 #iterator for space
-    k = 0 #iterator for time
-
     #para condincao inicial
-
 ###########
 ##Calculo aproximada
 ########
@@ -105,7 +103,7 @@ def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
 
 def main():
     llist = [0.25, 0.5, 0.51]
-    for lambd in llist:#(0.25, 0.51, 0.25):
+    for lambd in llist:
         N = 10
         while N <= 320:
             temp = time.time()
@@ -126,8 +124,7 @@ def main():
             print("Dx = ", Dx)
             print("Dt = ", Dt)
             print("lambda = ", lambd)
-            #return 0
-            #Creat the matix uik that describ all bar in datetime
+            #Creat the matix uik that describ all bar in time
             #Each line is a bar in one moment
             #So each colum is a position in the bar
             #uik_array(2, 5) is the point 5 of the bar at the moment 2
@@ -137,29 +134,41 @@ def main():
             eik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
             #matriz de truncamento
             tik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
-        #Talvez possamos eliminar uma linha e 2 colunas de cada uma dos arrays de erro e truncamento, mas resolvi manter para ser diretamente endereçados a matriz de resultado aproximado
 
+            #funcao para resolucao do exercicio
             resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt)
 
             #erro normalizado
             enorm = np.zeros((M + 1, 1), dtype = np.float64)
-            enorm = np.amax(np.absolute(eik_array), axis = 1) #normalizado esta estranho
+            enorm = np.amax(np.absolute(eik_array), axis = 1)
 
 
             yaxis = np.arange(N+1)
             #figura 1
-            plt.figure(1)
+            plt.figure(1, figsize = (20, 15))
             #plot do estado final aproximado
             plt.subplot(131)
-            plt.title('Temperatura')
-            for k in range(0, M, int(M/10)):
-                plt.plot(yaxis, uik_array[k], 'r')
-                plt.plot(yaxis, true_uik_array[k], 'b')
-            plt.plot(yaxis, uik_array[M], 'r', label = 'aproximado')
-            plt.plot(yaxis, true_uik_array[M], 'b', label= 'exato')
+            plt.title('Temperatura aproximada ao longo do tempo')
+            plt.plot(yaxis, uik_array[0], 'b--', label = 't = 0.0')
+            plt.plot(yaxis, uik_array[int(M/10)], 'g--', label = 't = 0.1')
+            plt.plot(yaxis, uik_array[int(2*M/10)], 'r--', label = 't = 0.2')
+            plt.plot(yaxis, uik_array[int(3*M/10)], 'c--', label = 't = 0.3')
+            plt.plot(yaxis, uik_array[int(4*M/10)], 'm--', label = 't = 0.4')
+            plt.plot(yaxis, uik_array[int(5*M/10)], 'y--', label = 't = 0.5')
+            plt.plot(yaxis, uik_array[int(6*M/10)], 'b:', label = 't = 0.6')
+            plt.plot(yaxis, uik_array[int(7*M/10)], 'g:', label = 't = 0.7')
+            plt.plot(yaxis, uik_array[int(8*M/10)], 'r:', label = 't = 0.8')
+            plt.plot(yaxis, uik_array[int(9*M/10)], 'c:', label = 't = 0.9')
+            plt.plot(yaxis, uik_array[M], 'r-', label = 't = 1')
+
+
+
+
+            plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
             plt.legend()
             plt.xlabel('Posição na barra')
             plt.ylabel('temperatura')
+            plt.savefig(str(maypath) + '/Images/Exercicio1b/Grafs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
             #plot do final exato
             # plt.subplot(122)
             # plt.title('Temperatura real')
@@ -168,7 +177,8 @@ def main():
             # plt.ylabel('temperatura')
 
             #plot do erro ao longo da barra
-            plt.subplot(132)
+            plt.figure(2, figsize = (20, 15))
+            plt.subplot(221)
             plt.title('Erro ao longo da barra no instante T \n')
             plt.plot(yaxis, eik_array[M], 'b', label = 'erro')
             plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
@@ -176,12 +186,12 @@ def main():
             plt.ylabel('erro')
             plt.legend()
             #plot do erro normalizado ao longo do tempo
-            plt.subplot(133)
+            plt.subplot(222)
             plt.title('Erro normalizado ao longo do tempo \n')
             plt.plot(np.arange(M+1),enorm)
             plt.xlabel('instante')
             plt.ylabel('erro')
-            plt.savefig(str(maypath) + '/Images/Grafs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
+            plt.savefig(str(maypath) + '/Images/Exercicio1b/Errs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
             plt.close('all')
             #show pyplot
             plt.show()
