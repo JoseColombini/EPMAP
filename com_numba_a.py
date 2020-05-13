@@ -146,7 +146,7 @@ def main():
             yaxis = np.arange(N+1)
             #figura 1
             plt.figure(1, figsize = (20, 15))
-            #plot do estado final aproximado
+            #plot aproximado
             plt.subplot(131)
             plt.title('Temperatura aproximada ao longo do tempo')
             plt.plot(yaxis, uik_array[0], 'b--', label = 't = 0.0')
