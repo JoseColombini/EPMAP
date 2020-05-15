@@ -271,18 +271,20 @@ def main():
 
             yaxis = np.arange(N+1)
             #figura 1
-            plt.figure(1)
-            #plot do estado final aproximado
-            plt.subplot(131)
-            plt.title('Temperatura')
-            #plt.plot(yaxis, uik_array[M], 'r', label = 'aproximado')
-            plt.plot(yaxis, e_uik_array[M], 'g', label = 'euler')
-            plt.plot(yaxis, c_uik_array[M], 'y', label = 'nicolsol')
-            plt.plot(yaxis, true_uik_array[M], 'b', label= 'exato')
-            plt.legend()
-            plt.xlabel('Posição na barra')
-            plt.ylabel('temperatura')
-            plt.show()
+            # plt.figure(1)
+            # #plot do estado final aproximado
+            # plt.subplot(131)
+            # plt.title('Temperatura')
+            # #plt.plot(yaxis, uik_array[M], 'r', label = 'aproximado')
+            # plt.plot(yaxis, e_uik_array[M], 'g', label = 'euler')
+            # plt.plot(yaxis, c_uik_array[M], 'y', label = 'nicolsol')
+            # plt.plot(yaxis, true_uik_array[M], 'b', label= 'exato')
+            # plt.legend()
+            # plt.xlabel('Posição na barra')
+            # plt.ylabel('temperatura')
+            # plt.subplot(132)
+            # plt.plot(yaxis,(e_uik_array[M] - true_uik_array[M]))
+            # plt.show()
             #plot do final exato
             # plt.subplot(122)
             # plt.title('Temperatura real')
@@ -308,6 +310,82 @@ def main():
             # plt.close('all')
             # #show pyplot
             # plt.show()
+
+            #tudo sobre euler
+                #figura 1 temoperatura
+            plt.figure(1, figsize = (20, 15))
+
+            plt.plot(yaxis, e_uik_array[0], 'b--', label = 't = 0.0')
+            plt.plot(yaxis, e_uik_array[int(M/10)], 'g--', label = 't = 0.1')
+            plt.plot(yaxis, e_uik_array[int(2*M/10)], 'r--', label = 't = 0.2')
+            plt.plot(yaxis, e_uik_array[int(3*M/10)], 'c--', label = 't = 0.3')
+            plt.plot(yaxis, e_uik_array[int(4*M/10)], 'm--', label = 't = 0.4')
+            plt.plot(yaxis, e_uik_array[int(5*M/10)], 'y--', label = 't = 0.5')
+            plt.plot(yaxis, e_uik_array[int(6*M/10)], 'b:', label = 't = 0.6')
+            plt.plot(yaxis, e_uik_array[int(7*M/10)], 'g:', label = 't = 0.7')
+            plt.plot(yaxis, e_uik_array[int(8*M/10)], 'r:', label = 't = 0.8')
+            plt.plot(yaxis, e_uik_array[int(9*M/10)], 'c:', label = 't = 0.9')
+            plt.plot(yaxis, e_uik_array[M], 'r-', label = 't = 1')
+
+            plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
+            plt.legend()
+            plt.xlabel('Posição na barra')
+            plt.ylabel('temperatura')
+            plt.savefig(str(maypath) + '/Images/Exercicio2b/Grafs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
+
+                #figura 2 erro
+            plt.figure(2, figsize = (20, 15))
+            plt.subplot(221)
+            plt.title('Erro ao longo da barra no instante T \n')
+            plt.plot(yaxis,(e_uik_array[M] - true_uik_array[M]), 'b', label = 'erro')
+            #plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
+            plt.xlabel('Posição na barra')
+            plt.ylabel('erro')
+            plt.legend()
+            #plot do erro normalizado ao longo do tempo
+            plt.savefig(str(maypath) + '/Images/Exercicio2b/Errs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
+            plt.close('all')
+
+
+            #CranckNicolson
+                #figura 3 temoperatura
+            plt.figure(3, figsize = (20, 15))
+
+            plt.plot(yaxis, c_uik_array[0], 'b--', label = 't = 0.0')
+            plt.plot(yaxis, c_uik_array[int(M/10)], 'g--', label = 't = 0.1')
+            plt.plot(yaxis, c_uik_array[int(2*M/10)], 'r--', label = 't = 0.2')
+            plt.plot(yaxis, c_uik_array[int(3*M/10)], 'c--', label = 't = 0.3')
+            plt.plot(yaxis, c_uik_array[int(4*M/10)], 'm--', label = 't = 0.4')
+            plt.plot(yaxis, c_uik_array[int(5*M/10)], 'y--', label = 't = 0.5')
+            plt.plot(yaxis, c_uik_array[int(6*M/10)], 'b:', label = 't = 0.6')
+            plt.plot(yaxis, c_uik_array[int(7*M/10)], 'g:', label = 't = 0.7')
+            plt.plot(yaxis, c_uik_array[int(8*M/10)], 'r:', label = 't = 0.8')
+            plt.plot(yaxis, c_uik_array[int(9*M/10)], 'c:', label = 't = 0.9')
+            plt.plot(yaxis, c_uik_array[M], 'r-', label = 't = 1')
+
+            plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
+            plt.legend()
+            plt.xlabel('Posição na barra')
+            plt.ylabel('temperatura')
+            plt.savefig(str(maypath) + '/Images/Exercicio2c/Grafs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
+
+                #figura 2 erro
+            plt.figure(2, figsize = (20, 15))
+            plt.subplot(221)
+            plt.title('Erro ao longo da barra no instante T \n')
+            plt.plot(yaxis,(c_uik_array[M] - true_uik_array[M]), 'b', label = 'erro')
+            #plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
+            plt.xlabel('Posição na barra')
+            plt.ylabel('erro')
+            plt.legend()
+            #plot do erro normalizado ao longo do tempo
+            plt.savefig(str(maypath) + '/Images/Exercicio2c/Errs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
+            plt.close('all')
+
+
+
+
+
             N = 2*N
             print(temp - time.time())
 
