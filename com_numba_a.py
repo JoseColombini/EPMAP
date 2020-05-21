@@ -28,10 +28,10 @@ X = 1
 #funcao qeu insere calor
 @jit(nopython=True)
 def f (x,t, Dx=0):
-    if Dx != 0:
-        f = r(t) * gh(x, 0.25, Dx)
-    else:
-        f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))       #b
+    # if Dx != 0:
+    f = r(t) * gh(x, 0.25, Dx)
+    # else:
+    #     f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))       #b
     #f = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)        #a
     #f = 10*x*x*(x - 1) - 60*x*t + 20*t                                                     #extra
     #f = 0
@@ -40,14 +40,14 @@ def f (x,t, Dx=0):
 #funcao r(t) do item c
 @jit(nopython=True)
 def r(t):
-    r = 10000 * (1-2*t**2)
+    r = 10000 * (1-2*(t**2))
     return r
 
 #funcao gh(x) do item c
 @jit(nopython=True)
 def gh(x, p, h):
-    if p-(h/2) <= x or x <= p+(h/2):
-        g = 1/h
+    if p-(h/2) <= x and x <= p+(h/2):
+        g = (1/h)*(1 - abs(x - p)*1/(h/2))
         return g
     else:
         return 0
@@ -84,11 +84,11 @@ def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
 ########
     #condicoes de fronteiras
     for k in range(1, M + 1):
-        uik_array[k][0] = u(0, k*Dt)
-        uik_array[k][N] = u(N*Dx, k*Dt)
+        uik_array[k][0] =0 #u(0, k*Dt)
+        uik_array[k][N] =0# u(N*Dx, k*Dt)
     #condicao inicial
     for i in range(N + 1):
-        uik_array[0][i] = u(Dx*i, 0)
+        uik_array[0][i] =0# u(Dx*i, 0)
     #laco para calcular os elementos depois de dada as condicoes inciais
     for k in range(M):
         for i in range(1, N):
@@ -180,11 +180,11 @@ def main():
 
 
 
-            plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
+            #plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
             plt.legend()
             plt.xlabel('Posição na barra')
             plt.ylabel('temperatura')
-            plt.savefig(str(maypath) + '/Images/Exercicio1b/Grafs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
+            plt.savefig(str(maypath) + '/Images/Exercicio1c/Grafs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
             #plot do final exato
             # plt.subplot(122)
             # plt.title('Temperatura real')
@@ -207,7 +207,7 @@ def main():
             plt.plot(np.arange(M+1),enorm)
             plt.xlabel('instante')
             plt.ylabel('erro')
-            plt.savefig(str(maypath) + '/Images/Exercicio1b/Errs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
+            plt.savefig(str(maypath) + '/Images/Exercicio1c/Errs N = ' + str(N) + ', L = ' + str(lambd) + '.png')
             plt.close('all')
             #show pyplot
             plt.show()

@@ -23,14 +23,32 @@ maypath = pathlib.Path(__file__).parent.absolute()
 T = 1 #Ex 1
 X = 1
 
-#funcao qeu insere calor
+##funcao qeu insere calor
 @jit(nopython=True)
-def f (x,t):
-    #f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))       #b
-    f = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)        #a
+def f (x,t, Dx=0):
+    # if Dx != 0:
+    f = r(t) * gh(x, 0.25, Dx)
+    # else:
+    #     f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))       #b
+    #f = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)        #a
     #f = 10*x*x*(x - 1) - 60*x*t + 20*t                                                     #extra
     #f = 0
     return f
+
+#funcao r(t) do item c
+@jit(nopython=True)
+def r(t):
+    r = 10000 * (1-2*(t**2))
+    return r
+
+#funcao gh(x) do item c
+@jit(nopython=True)
+def gh(x, p, h):
+    if p-(h/2) <= x and x <= p+(h/2):
+        g = (1/h)#*(1 - abs(x - p)*1/(h/2))
+        return g
+    else:
+        return 0
 
 #funcoes de condicao de contor, g sao as fronteira ui é a inicial
 # @jit(nopython=True)
@@ -46,59 +64,59 @@ def f (x,t):
 
 @jit(nopython=True)
 def u (x, t):
-    #u = math.exp(t - x)*math.cos(5*t*x)                                         #b
-    u = (1 + math.sin(10*t))*x*x*(1 - x)**2                                    #a
+    u = math.exp(t - x)*math.cos(5*t*x)                                         #b
+    #u = (1 + math.sin(10*t))*x*x*(1 - x)**2                                    #a
     #u = 10*t*x*x*(x - 1)
     #u = 0
     return u
 
 
-
-@jit(nopython=True)
-def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
-    #metodo 11
-    #fix = 0. #inserção de calor
-    i = 0 #iterator for space
-    k = 0 #iterator for time
-
-    #para condincao inicial
-
-###########
-##Calculo aproximada
-########
-    #condicoes de fronteiras
-    for k in range(1, M + 1):
-        uik_array[k][0] = u(0, k*Dt)
-        uik_array[k][N] = u(N*Dx, k*Dt)
-    #condicao inicial
-    for i in range(N + 1):
-        uik_array[0][i] = u(Dx*i, 0)
-    #laco para calcular os elementos depois de dada as condicoes inciais
-    for k in range(M):
-        for i in range(1, N):
-            #fix = f(Dx*i, Dt*k)
-            uik_array[k + 1][i] = uik_array[k][i] + Dt*((uik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + f(Dx*i, Dt*k))
-
-##########
-##Calculo exato
-##########
-    for k in range(M + 1):
-        for i in range(N + 1):
-            true_uik_array[k][i] = u(Dx*i, Dt*k)
-
-#########
-##Calculo dos erros e truncamentos
-###########
-
-    #calculo do truncamento
-    for k in range(M):
-        for i in range(1, N):
-            tik_array[k][i] = ((true_uik_array[k+1][i] - true_uik_array[k][i])/Dt) -((true_uik_array[k][i - 1] - 2*true_uik_array[k][i] + true_uik_array[k][i + 1])/(Dx**2)) - (f(Dx*i, Dt*k))
-
-    #Calculo do erro
-    for k in range(M):
-        for i in range(1, N):
-            eik_array[k + 1][i] = eik_array[k][i] + Dt*((eik_array[k][i - 1] - 2*eik_array[k][i] + eik_array[k][i + 1])/(Dx*Dx) + tik_array[k][i] )
+#
+# @jit(nopython=True)
+# def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
+#     #metodo 11
+#     #fix = 0. #inserção de calor
+#     i = 0 #iterator for space
+#     k = 0 #iterator for time
+#
+#     #para condincao inicial
+#
+# ###########
+# ##Calculo aproximada
+# ########
+#     #condicoes de fronteiras
+#     for k in range(1, M + 1):
+#         uik_array[k][0] = u(0, k*Dt)
+#         uik_array[k][N] = u(N*Dx, k*Dt)
+#     #condicao inicial
+#     for i in range(N + 1):
+#         uik_array[0][i] = u(Dx*i, 0)
+#     #laco para calcular os elementos depois de dada as condicoes inciais
+#     for k in range(M):
+#         for i in range(1, N):
+#             #fix = f(Dx*i, Dt*k)
+#             uik_array[k + 1][i] = uik_array[k][i] + Dt*((uik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + f(Dx*i, Dt*k))
+#
+# ##########
+# ##Calculo exato
+# ##########
+#     for k in range(M + 1):
+#         for i in range(N + 1):
+#             true_uik_array[k][i] = u(Dx*i, Dt*k)
+#
+# #########
+# ##Calculo dos erros e truncamentos
+# ###########
+#
+#     #calculo do truncamento
+#     for k in range(M):
+#         for i in range(1, N):
+#             tik_array[k][i] = ((true_uik_array[k+1][i] - true_uik_array[k][i])/Dt) -((true_uik_array[k][i - 1] - 2*true_uik_array[k][i] + true_uik_array[k][i + 1])/(Dx**2)) - (f(Dx*i, Dt*k))
+#
+#     #Calculo do erro
+#     for k in range(M):
+#         for i in range(1, N):
+#             eik_array[k + 1][i] = eik_array[k][i] + Dt*((eik_array[k][i - 1] - 2*eik_array[k][i] + eik_array[k][i + 1])/(Dx*Dx) + tik_array[k][i] )
 
 
 
@@ -157,11 +175,11 @@ def euler(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, Dt, Dx, l
     for k in range(0, M):
         for i in range(N - 1):
             if i == 0:
-                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1)) + uik_array[k][i + 1] + lambd*u(0, (k+1)*Dt)
+                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1), Dx) + uik_array[k][i + 1] + lambd*u(0, (k+1)*Dt)
             elif i == (N - 2):
-                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1)) + uik_array[k][i + 1] + lambd*uik_array[k + 1][N]
+                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1), Dx) + uik_array[k][i + 1] + lambd*uik_array[k + 1][N]
             else:
-                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1)) + uik_array[k][i + 1]
+                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1), Dx) + uik_array[k][i + 1]
 
         Solving_LD(L_arrary, D_arrary, b_array, N, X3)
         for t in range(N - 1):
@@ -194,11 +212,11 @@ def crankNicolson(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, D
     for k in range(0, M):
         for i in range(N - 1):
             if i == 0:
-                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1)) + f(Dx*(i + 1), Dt*k)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2]) + (lambd/2)*uik_array[k + 1][0]
+                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1), Dx) + f(Dx*(i + 1), Dt*k, Dx)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2]) + (lambd/2)*uik_array[k + 1][0]
             elif i == (N - 2):
-                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1)) + f(Dx*(i + 1), Dt*k)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2]) + (lambd/2)*uik_array[k + 1][N]
+                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1), Dx) + f(Dx*(i + 1), Dt*k, Dx)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2]) + (lambd/2)*uik_array[k + 1][N]
             else:
-                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1)) + f(Dx*(i + 1), Dt*k)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2])
+                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1), Dx) + f(Dx*(i + 1), Dt*k, Dx)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2])
 
         Solving_LD(L_arrary, D_arrary, b_array, N, X3)
         for t in range(N - 1):
@@ -259,7 +277,7 @@ def main():
         #    Solving_LD(L_arrary, D_arraryr, uik_array[i])
 
 
-            resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt)
+            #resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt)
 
 
 
@@ -327,7 +345,7 @@ def main():
             plt.plot(yaxis, e_uik_array[int(9*M/10)], 'c:', label = 't = 0.9')
             plt.plot(yaxis, e_uik_array[M], 'r-', label = 't = 1')
 
-            plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
+            #plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
             plt.legend()
             plt.xlabel('Posição na barra')
             plt.ylabel('temperatura')
@@ -363,7 +381,7 @@ def main():
             plt.plot(yaxis, c_uik_array[int(9*M/10)], 'c:', label = 't = 0.9')
             plt.plot(yaxis, c_uik_array[M], 'r-', label = 't = 1')
 
-            plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
+            #plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
             plt.legend()
             plt.xlabel('Posição na barra')
             plt.ylabel('temperatura')
