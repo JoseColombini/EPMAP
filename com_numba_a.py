@@ -27,12 +27,30 @@ X = 1
 
 #funcao qeu insere calor
 @jit(nopython=True)
-def f (x,t):
-    f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))       #b
+def f (x,t, Dx=0):
+    if Dx != 0:
+        f = r(t) * gh(x, 0.25, Dx)
+    else:
+        f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))       #b
     #f = 10*math.cos(10*t)*x*x*(1 - x)**2 - (1 + math.sin(10*t))*(12*x*x - 12*x + 2)        #a
     #f = 10*x*x*(x - 1) - 60*x*t + 20*t                                                     #extra
     #f = 0
     return f
+
+#funcao r(t) do item c
+@jit(nopython=True)
+def r(t):
+    r = 10000 * (1-2*t**2)
+    return r
+
+#funcao gh(x) do item c
+@jit(nopython=True)
+def gh(x, p, h):
+    if p-(h/2) <= x or x <= p+(h/2):
+        g = 1/h
+        return g
+    else:
+        return 0
 
 #Estas funcoes foram depreciadas após a utilizacao dos conceitos das equacoes 2, 3, 4 para simplificar o codigo
 #funcoes de condicao de contor, g sao as fronteira ui é a inicial
@@ -75,7 +93,7 @@ def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
     for k in range(M):
         for i in range(1, N):
             #fix = f(Dx*i, Dt*k)
-            uik_array[k + 1][i] = uik_array[k][i] + Dt*((uik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + f(Dx*i, Dt*k))
+            uik_array[k + 1][i] = uik_array[k][i] + Dt*((uik_array[k][i - 1] - 2*uik_array[k][i] + uik_array[k][i + 1])/(Dx*Dx) + f(Dx*i, Dt*k, Dx))
 
 ##########
 ##Calculo exato
@@ -91,14 +109,12 @@ def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
     #calculo do truncamento
     for k in range(M):
         for i in range(1, N):
-            tik_array[k][i] = ((true_uik_array[k+1][i] - true_uik_array[k][i])/Dt) -((true_uik_array[k][i - 1] - 2*true_uik_array[k][i] + true_uik_array[k][i + 1])/(Dx**2)) - (f(Dx*i, Dt*k))
+            tik_array[k][i] = ((true_uik_array[k+1][i] - true_uik_array[k][i])/Dt) -((true_uik_array[k][i - 1] - 2*true_uik_array[k][i] + true_uik_array[k][i + 1])/(Dx**2)) - (f(Dx*i, Dt*k, Dx))
 
     #Calculo do erro
     for k in range(M):
         for i in range(1, N):
             eik_array[k + 1][i] = eik_array[k][i] + Dt*((eik_array[k][i - 1] - 2*eik_array[k][i] + eik_array[k][i + 1])/(Dx*Dx) + tik_array[k][i] )
-
-
 
 
 def main():
