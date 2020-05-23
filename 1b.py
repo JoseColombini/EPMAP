@@ -16,17 +16,12 @@ import time
 import datetime
 import os
 import sys
-import pathlib
-from numba import jit
 
-
-maypath = pathlib.Path(__file__).parent.absolute()
 
 T = 1 #Ex 1
 X = 1
 
 #funcao qeu insere calor
-@jit(nopython=True)
 def f (x,t):
     f = (math.exp(t - x)*(math.cos(5*t*x) - 5*x*math.sin(5*t*x))) - (math.exp(t - x)*((1 - 25*t**2)*math.cos(5*t*x) + 10*t*math.sin(5*t*x)))       #b
     return f
@@ -45,14 +40,12 @@ def f (x,t):
 #     u = x*x*(1 - x)**2
 #     return u
 
-@jit(nopython=True)
 def u (x, t):
     u = math.exp(t - x)*math.cos(5*t*x)                                         #b
     return u
 
 
 
-@jit(nopython=True)
 def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
     #metodo 11
     #para condincao inicial
