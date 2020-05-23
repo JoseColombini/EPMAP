@@ -16,29 +16,21 @@ import time
 import datetime
 import os
 import sys
-import pathlib
-from numba import jit
-
-
-maypath = pathlib.Path(__file__).parent.absolute()
 
 T = 1 #Ex 1
 X = 1
 
 #funcao qeu insere calor
-@jit(nopython=True)
 def f (x,t, Dx):
     f = r(t) * gh(x, 0.25, Dx)
     return f
 
 #funcao r(t) do item c
-@jit(nopython=True)
 def r(t):
     r = 10000 * (1-2*(t**2))
     return r
 
 #funcao gh(x) do item c
-@jit(nopython=True)
 def gh(x, p, h):
     if p-(h/2) <= x and x <= p+(h/2):
         g = (1/h)*(1 - abs(x - p)*1/(h/2))
@@ -66,7 +58,6 @@ def gh(x, p, h):
 #
 #
 
-@jit(nopython=True)
 def resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt):
     #metodo 11
     #para condincao inicial
