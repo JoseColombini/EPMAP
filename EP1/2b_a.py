@@ -80,7 +80,7 @@ def Solving_LD(L_arrary, D_arrary, b_array, N, X3):
 
 
 @jit(nopython=True)
-def euler(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, Dt, Dx, lambd):
+def euler(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, Dt, Dx, lambd, tik_array):
 
     b_array = np.zeros((N - 1), dtype = np.float64)
     X3 = np.zeros((N - 1), dtype = np.float64)
@@ -150,9 +150,11 @@ def main():
             A_S_arrary = np.zeros((N - 1), dtype = np.float64)
             D_arrary = np.zeros((N - 1), dtype = np.float64)
             L_arrary = np.zeros((N - 1), dtype = np.float64)
+            tik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
+
 
             #building A_arrary
-            euler(A_P_arrary, A_S_arrary, L_arrary, D_arrary, e_uik_array, N, M, Dt, Dx, lambd)
+            euler(A_P_arrary, A_S_arrary, L_arrary, D_arrary, e_uik_array, N, M, Dt, Dx, lambd, tik_array)
 
             ##########
             ##Calculo exato
@@ -160,6 +162,11 @@ def main():
             for k in range(M + 1):
                 for i in range(N + 1):
                     true_uik_array[k][i] = u(Dx*i, Dt*k)
+
+            #calculo do truncamento
+            for k in range(M):
+                for i in range(1, N):
+                    tik_array[k][i] = ((true_uik_array[k+1][i] - true_uik_array[k][i])/Dt) -((true_uik_array[k + 1][i - 1] - 2*true_uik_array[k + 1][i] + true_uik_array[k + 1][i + 1])/(Dx**2)) - (f(Dx*i, Dt*(k+1)))
 
 
             yaxis = np.arange(N+1)
@@ -191,7 +198,7 @@ def main():
             plt.subplot(221)
             plt.title('Erro ao longo da barra no instante T \n')
             plt.plot(yaxis,(true_uik_array[M] - e_uik_array[M]), 'b', label = 'erro')
-            #plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
+            plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
             plt.xlabel('Posição na barra')
             plt.ylabel('erro')
             plt.legend()

@@ -161,6 +161,11 @@ def main():
                 for i in range(N + 1):
                     true_uik_array[k][i] = u(Dx*i, Dt*k)
 
+            #calculo do truncamento
+            for k in range(M):
+                for i in range(1, N):
+                    tik_array[k][i] = ((true_uik_array[k+1][i] - true_uik_array[k][i])/Dt) -((true_uik_array[k + 1][i - 1] - 2*true_uik_array[k + 1][i] + true_uik_array[k + 1][i + 1])/(Dx**2)) - (f(Dx*i, Dt*(k+1)))
+
 
             yaxis = np.arange(N+1)
 
@@ -191,7 +196,7 @@ def main():
             plt.subplot(221)
             plt.title('Erro ao longo da barra no instante T \n')
             plt.plot(yaxis,(true_uik_array[M] - e_uik_array[M]), 'b', label = 'erro')
-            #plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
+            plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
             plt.xlabel('Posição na barra')
             plt.ylabel('erro')
             plt.legend()

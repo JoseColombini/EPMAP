@@ -175,11 +175,11 @@ def euler(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, Dt, Dx, l
     for k in range(0, M):
         for i in range(N - 1):
             if i == 0:
-                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1), Dx) + uik_array[k][i + 1] + lambd*u(0, (k+1)*Dt)
+                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1)) + uik_array[k][i + 1] + lambd*u(0, (k+1)*Dt)
             elif i == (N - 2):
-                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1), Dx) + uik_array[k][i + 1] + lambd*uik_array[k + 1][N]
+                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1)) + uik_array[k][i + 1] + lambd*uik_array[k + 1][N]
             else:
-                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1), Dx) + uik_array[k][i + 1]
+                b_array[i] = Dt*f(Dx*(i + 1), Dt*(k + 1)) + uik_array[k][i + 1]
 
         Solving_LD(L_arrary, D_arrary, b_array, N, X3)
         for t in range(N - 1):
@@ -212,11 +212,11 @@ def crankNicolson(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, D
     for k in range(0, M):
         for i in range(N - 1):
             if i == 0:
-                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1), Dx) + f(Dx*(i + 1), Dt*k, Dx)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2]) + (lambd/2)*uik_array[k + 1][0]
+                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1)) + f(Dx*(i + 1), Dt*k)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2]) + (lambd/2)*uik_array[k + 1][0]
             elif i == (N - 2):
-                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1), Dx) + f(Dx*(i + 1), Dt*k, Dx)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2]) + (lambd/2)*uik_array[k + 1][N]
+                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1)) + f(Dx*(i + 1), Dt*k)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2]) + (lambd/2)*uik_array[k + 1][N]
             else:
-                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1), Dx) + f(Dx*(i + 1), Dt*k, Dx)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2])
+                b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1)) + f(Dx*(i + 1), Dt*k)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2])
 
         Solving_LD(L_arrary, D_arrary, b_array, N, X3)
         for t in range(N - 1):
@@ -278,6 +278,17 @@ def main():
 
 
             #resolution_a(N, M, uik_array, true_uik_array, eik_array, tik_array, Dx, Dt)
+            ##########
+            ##Calculo exato
+            ##########
+            for k in range(M + 1):
+                for i in range(N + 1):
+                    true_uik_array[k][i] = u(Dx*i, Dt*k)
+
+            #calculo do truncamento
+            for k in range(M):
+                for i in range(1, N):
+                    tik_array[k][i] = ((true_uik_array[k+1][i] - true_uik_array[k][i])/Dt) -((true_uik_array[k + 1][i - 1] - 2*true_uik_array[k + 1][i] + true_uik_array[k + 1][i + 1])/(Dx**2)) - (f(Dx*i, Dt*(k+1)))
 
 
 
@@ -356,7 +367,7 @@ def main():
             plt.subplot(221)
             plt.title('Erro ao longo da barra no instante T \n')
             plt.plot(yaxis,(e_uik_array[M] - true_uik_array[M]), 'b', label = 'erro')
-            #plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
+            plt.plot(yaxis, tik_array[M - 1], 'r', label = 'truncamento')
             plt.xlabel('Posição na barra')
             plt.ylabel('erro')
             plt.legend()
