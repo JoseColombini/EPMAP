@@ -26,7 +26,7 @@ X = 1
 ##funcao qeu insere calor
 @jit(nopython=True)
 def f (x,t, Dx, pk):
-    f = r(t)*ak*gh(x, pk, Dx)
+    f = r(t)*gh(x, pk, Dx)
     return f
 
 
@@ -75,7 +75,7 @@ def Solving_LD(L_arrary, D_arrary, b_array, N, X3):
         X3[i] = X2[i] - L_arrary[i + 1]*X3[i + 1]
 
 
-@jit(nopython=True)
+@jit
 def crankNicolson(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, Dt, Dx, lambd, pk):
 
     b_array = np.zeros((N - 1), dtype = np.float64)
@@ -122,9 +122,9 @@ def main():
             ak_array = np.zeros(nf, dtype = np.float64)
 
             for i in range(nf):
-                pk_array = int(input("Insert p"+ str(i)+" position: "))
+                pk_array[i] = float(input("Insert p"+ str(i)+" position: "))
             for i in range(nf):
-                ak_array = int(input("Insert a"+ str(i)+" weight: "))
+                ak_array[i] = float(input("Insert a"+ str(i)+" weight: "))
 
 
 
@@ -145,7 +145,7 @@ def main():
             #uik_array(2, 5) is the point 5 of the bar at the moment 2
             uik_array = np.zeros((M + 1, N + 1), dtype = np.float64)  #euler uik
             T_uik_array = np.zeros((1, N + 1), dtype = np.float64) #uik real
-            p_uik_array = np.zeros((nf - 1, N + 1), dtype = np.float64)
+            p_uik_array = np.zeros((nf, N + 1), dtype = np.float64)
             #matriz de erros
             eik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
 
@@ -155,7 +155,7 @@ def main():
             L_arrary = np.zeros((N - 1), dtype = np.float64)
 
             NS_array = np.zeros((nf, nf), dtype = np.float64)
-            RS_array = np.zero((nf), dtype = np.float64)
+            RS_array = np.zeros((nf), dtype = np.float64)
 
 
 
@@ -185,7 +185,8 @@ def main():
 
 
             normalSystemArrange(p_uik_array, T_uik_array, NS_array, RS_array)
-
+            print(NS_array)
+            print(RS_array)
 
 
             # yaxis = np.arange(N+1)
