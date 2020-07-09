@@ -18,8 +18,6 @@ import pathlib
 from numba import jit
 
 
-maypath = pathlib.Path(__file__).parent.absolute()
-
 T = 1 #Ex 1
 X = 1
 
@@ -100,7 +98,6 @@ def crankNicolson(A_P_array, A_S_array, L_array, D_array, uik_array, N, M, Dt, D
 #######################################################
 ##### EP 2
 ########################################################
-
 def normalSystemArrange (p_uik_array, T_uik_array, NS_array, RS_array):
     for i in range(len(RS_array)):
         for t in range(i, len(RS_array)):
@@ -131,7 +128,6 @@ def ldl_decomp(n, A_array, L_array, D_array):
 			L_array[j][i] = (A_array[j][i] - soma1)/D_array[i]
 
 
-
 def ldl_solver(L_array, D_array, RS_array, N, X3):
 
     X1 = np.zeros((N), dtype = np.float64)
@@ -157,31 +153,190 @@ def ldl_solver(L_array, D_array, RS_array, N, X3):
         X3[i] = X2[i] - soma_l
 
 
+def E2 (T_uik_array, ak_array, p_uik_array, Dx):
+    soma = 0.0
+    for i in range(1, len(T_uik_array[0]) - 1):
+        somaak = 0.0
+        for k in range(len(ak_array)):
+            somaak += ak_array[k]*p_uik_array[k][i]
+        soma += (T_uik_array[0][i] - somaak)**2
+    return math.sqrt(Dx*(soma))
+
 
 
 
 def main():
-            temp = time.time()
-            #Input of number of divisions
-            N = int(input("Insert the number of x fraction (N): "))
+
+
+
+    temp = time.time()
+    a = input("selecione o teste (a, b, c, d) ou livre (l): ")
+    if(a == 'a'):
+        N = 128
+        M = N
+        nf = 1
+        pk_array = np.zeros(nf, dtype = np.float64)
+        ak_array = np.zeros(nf, dtype = np.float64)
+        ak_array[0] = 7
+        pk_array[0] = 0.35
+
+        Dx = X/N
+        Dt = T/M
+        lambd = Dt/(Dx*Dx)
+        print("N = ", N)
+        print("M = ", M)
+        print("Dx = ", Dx)
+        print("Dt = ", Dt)
+        print("lambda = ", lambd)
+        print("nf = ", nf)
+        print("pk = ", pk_array)
+        print("ak = ", ak_array)
+
+        #Creat the matix uik that describ all bar in datetime
+        #Each line is a bar in one moment
+        #So each colum is a position in the bar
+        #uik_array(2, 5) is the point 5 of the bar at the moment 2
+        uik_array = np.zeros((M + 1, N + 1), dtype = np.float64)  #euler uik
+        T_uik_array = np.zeros((1, N + 1), dtype = np.float64) #uik real
+        p_uik_array = np.zeros((nf, N + 1), dtype = np.float64)
+        #matriz de erros
+        eik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
+
+        A_P_array = np.zeros((N - 1), dtype = np.float64)
+        A_S_array = np.zeros((N - 1), dtype = np.float64)
+        D_array = np.zeros((N - 1), dtype = np.float64)
+        L_array = np.zeros((N - 1), dtype = np.float64)
+
+        DR_array = np.zeros((nf), dtype = np.float64)
+        LR_array = np.zeros((nf, nf), dtype = np.float64)
+        XR_array = np.zeros((nf), dtype = np.float64)
+
+        NS_array = np.zeros((nf, nf), dtype = np.float64)
+        RS_array = np.zeros((nf), dtype = np.float64)
+
+
+
+        for i in range(N - 1):
+            A_P_array[i] = 1 + lambd
+        for i in range(1, N - 1):
+            A_S_array[i] = -lambd/2
+
+
+        #COndicoes inicias
+        for i in range(N + 1):
+            uik_array[0][i] = 0
+        #condicao de contorno
+        for k in range(1, M + 1):
+            uik_array[k][0] = 0
+            uik_array[k][N] = 0
+
+        Decomp_LD(A_P_array, A_S_array, L_array, D_array, N)
+        #building A_array
+        for i in range(nf):
+            crankNicolson(A_P_array, A_S_array, L_array, D_array, uik_array, N, M, Dt, Dx, lambd, pk_array[i])
+            T_uik_array += ak_array[i]*uik_array[M]
+            p_uik_array[i] = uik_array[M]
+
+
+        normalSystemArrange(p_uik_array, T_uik_array, NS_array, RS_array)
+        print(NS_array)
+        print(RS_array)
+        ldl_decomp(nf, NS_array, LR_array, DR_array)
+        ldl_solver(LR_array, DR_array, RS_array, nf, XR_array)
+        print("result")
+        print(XR_array)
+
+
+
+
+    elif(a == 'b'):
+        N = 128
+        M = N
+        nf = 4
+        pk_array = np.zeros(nf, dtype = np.float64)
+        ak_array = np.zeros(nf, dtype = np.float64)
+        pk_array = [0.15, 0.3, 0.7, 0.8]
+        ak_array = [2.3, 3.7, 0.3, 4.2]
+
+        Dx = X/N
+        Dt = T/M
+        lambd = Dt/(Dx*Dx)
+        print("N = ", N)
+        print("M = ", M)
+        print("Dx = ", Dx)
+        print("Dt = ", Dt)
+        print("lambda = ", lambd)
+        print("nf = ", nf)
+        print("pk = ", pk_array)
+        print("ak = ", ak_array)
+
+        #Creat the matix uik that describ all bar in datetime
+        #Each line is a bar in one moment
+        #So each colum is a position in the bar
+        #uik_array(2, 5) is the point 5 of the bar at the moment 2
+        uik_array = np.zeros((M + 1, N + 1), dtype = np.float64)  #euler uik
+        T_uik_array = np.zeros((1, N + 1), dtype = np.float64) #uik real
+        p_uik_array = np.zeros((nf, N + 1), dtype = np.float64)
+        #matriz de erros
+        eik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
+
+        A_P_array = np.zeros((N - 1), dtype = np.float64)
+        A_S_array = np.zeros((N - 1), dtype = np.float64)
+        D_array = np.zeros((N - 1), dtype = np.float64)
+        L_array = np.zeros((N - 1), dtype = np.float64)
+
+        DR_array = np.zeros((nf), dtype = np.float64)
+        LR_array = np.zeros((nf, nf), dtype = np.float64)
+        XR_array = np.zeros((nf), dtype = np.float64)
+
+        NS_array = np.zeros((nf, nf), dtype = np.float64)
+        RS_array = np.zeros((nf), dtype = np.float64)
+
+
+
+        for i in range(N - 1):
+            A_P_array[i] = 1 + lambd
+        for i in range(1, N - 1):
+            A_S_array[i] = -lambd/2
+
+
+        #COndicoes inicias
+        for i in range(N + 1):
+            uik_array[0][i] = 0
+        #condicao de contorno
+        for k in range(1, M + 1):
+            uik_array[k][0] = 0
+            uik_array[k][N] = 0
+
+        Decomp_LD(A_P_array, A_S_array, L_array, D_array, N)
+        #building A_array
+        for i in range(nf):
+            crankNicolson(A_P_array, A_S_array, L_array, D_array, uik_array, N, M, Dt, Dx, lambd, pk_array[i])
+            T_uik_array += ak_array[i]*uik_array[M]
+            p_uik_array[i] = uik_array[M]
+
+
+        normalSystemArrange(p_uik_array, T_uik_array, NS_array, RS_array)
+        print(NS_array)
+        print(RS_array)
+        ldl_decomp(nf, NS_array, LR_array, DR_array)
+        ldl_solver(LR_array, DR_array, RS_array, nf, XR_array)
+        print("result")
+        print(XR_array)
+
+
+
+
+    elif(a == 'c'):
+        Nlist = [128]#, 256, 512, 1024]
+        f = open("Arquivo teste para o EP2.txt", "r")
+        pk_array = f.readline().split()
+        ak_array = np.zeros(len(pk_array), dtype = np.float64)
+        for l in Nlist:
+            N = l
+            M = N
+            nf = len(pk_array)
             Dx = X/N
-            #lambd = float(input("Insert lambda: "))
-            #Dt = lambd*Dx*Dx
-            #M = int(round(T/Dt))
-            M = int(input("Insert the number of t fraction (M): "))
-            #Size of fractions
-            nf = int(input("Insert the number of fonts (nf): "))
-            pk_array = np.zeros(nf, dtype = np.float64)
-            ak_array = np.zeros(nf, dtype = np.float64)
-
-            for i in range(nf):
-                pk_array[i] = float(input("Insert p"+ str(i)+" position: "))
-            for i in range(nf):
-                ak_array[i] = float(input("Insert a"+ str(i)+" weight: "))
-
-
-
-
             Dt = T/M
             lambd = Dt/(Dx*Dx)
             print("N = ", N)
@@ -191,11 +346,6 @@ def main():
             print("lambda = ", lambd)
             print("nf = ", nf)
             print("pk = ", pk_array)
-            #return 0
-            #Creat the matix uik that describ all bar in datetime
-            #Each line is a bar in one moment
-            #So each colum is a position in the bar
-            #uik_array(2, 5) is the point 5 of the bar at the moment 2
             uik_array = np.zeros((M + 1, N + 1), dtype = np.float64)  #euler uik
             T_uik_array = np.zeros((1, N + 1), dtype = np.float64) #uik real
             p_uik_array = np.zeros((nf, N + 1), dtype = np.float64)
@@ -215,7 +365,6 @@ def main():
             RS_array = np.zeros((nf), dtype = np.float64)
 
 
-
             for i in range(N - 1):
                 A_P_array[i] = 1 + lambd
             for i in range(1, N - 1):
@@ -230,16 +379,23 @@ def main():
                 uik_array[k][0] = 0
                 uik_array[k][N] = 0
 
-            #resolvendo euler implicito
             Decomp_LD(A_P_array, A_S_array, L_array, D_array, N)
-
-
             #building A_array
             for i in range(nf):
-                crankNicolson(A_P_array, A_S_array, L_array, D_array, uik_array, N, M, Dt, Dx, lambd, pk_array[i])
-                T_uik_array += ak_array[i]*uik_array[M]
+                crankNicolson(A_P_array, A_S_array, L_array, D_array, uik_array, N, M, Dt, Dx, lambd, float(pk_array[i]))
                 p_uik_array[i] = uik_array[M]
 
+
+            t = 0
+            i = 0
+            T_uik_array[0][i] = float(f.readline())
+            i = 1
+            t = 1
+            for x in f:
+                if (t%(2048/l)) == 0:
+                    T_uik_array[0][i] = float(x)
+                    i = i + 1
+                t = t + 1
 
             normalSystemArrange(p_uik_array, T_uik_array, NS_array, RS_array)
             print(NS_array)
@@ -249,35 +405,71 @@ def main():
             print("result")
             print(XR_array)
 
-
-            # yaxis = np.arange(N+1)
-
-            #tudo sobre euler
-                #figura 1 temoperatura
-            # plt.figure(1, figsize = (20, 15))
-            #
-            # plt.plot(yaxis, c_uik_array[0], 'b--', label = 't = 0.0')
-            # plt.plot(yaxis, c_uik_array[int(M/10)], 'g--', label = 't = 0.1')
-            # plt.plot(yaxis, c_uik_array[int(2*M/10)], 'r--', label = 't = 0.2')
-            # plt.plot(yaxis, c_uik_array[int(3*M/10)], 'c--', label = 't = 0.3')
-            # plt.plot(yaxis, c_uik_array[int(4*M/10)], 'm--', label = 't = 0.4')
-            # plt.plot(yaxis, c_uik_array[int(5*M/10)], 'y--', label = 't = 0.5')
-            # plt.plot(yaxis, c_uik_array[int(6*M/10)], 'b:', label = 't = 0.6')
-            # plt.plot(yaxis, c_uik_array[int(7*M/10)], 'g:', label = 't = 0.7')
-            # plt.plot(yaxis, c_uik_array[int(8*M/10)], 'r:', label = 't = 0.8')
-            # plt.plot(yaxis, c_uik_array[int(9*M/10)], 'c:', label = 't = 0.9')
-            # plt.plot(yaxis, c_uik_array[M], 'r-', label = 't = 1')
-            #
-            # plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
-            # plt.legend()
-            # plt.xlabel('Posição na barra')
-            # plt.ylabel('temperatura')
-            #
-            # plt.show()
+            E = E2(T_uik_array,ak_array, p_uik_array, Dx)
+            print("eerr/: ", E)
 
 
 
-            print(temp - time.time())
+
+    else:
+        #Input of number of divisions
+        N = int(input("Insert the number of x fraction (N): "))
+        #lambd = float(input("Insert lambda: "))
+        #Dt = lambd*Dx*Dx
+        #M = int(round(T/Dt))
+        M = int(input("Insert the number of t fraction (M): "))
+        #Size of fractions
+        nf = int(input("Insert the number of fonts (nf): "))
+        pk_array = np.zeros(nf, dtype = np.float64)
+        ak_array = np.zeros(nf, dtype = np.float64)
+
+        for i in range(nf):
+            pk_array[i] = float(input("Insert p"+ str(i)+" position: "))
+        for i in range(nf):
+            ak_array[i] = float(input("Insert a"+ str(i)+" weight: "))
+
+
+
+
+    #return 0
+
+
+
+
+
+    #resolvendo euler implicito
+
+
+
+
+    # yaxis = np.arange(N+1)
+
+    #tudo sobre euler
+        #figura 1 temoperatura
+    # plt.figure(1, figsize = (20, 15))
+    #
+    # plt.plot(yaxis, c_uik_array[0], 'b--', label = 't = 0.0')
+    # plt.plot(yaxis, c_uik_array[int(M/10)], 'g--', label = 't = 0.1')
+    # plt.plot(yaxis, c_uik_array[int(2*M/10)], 'r--', label = 't = 0.2')
+    # plt.plot(yaxis, c_uik_array[int(3*M/10)], 'c--', label = 't = 0.3')
+    # plt.plot(yaxis, c_uik_array[int(4*M/10)], 'm--', label = 't = 0.4')
+    # plt.plot(yaxis, c_uik_array[int(5*M/10)], 'y--', label = 't = 0.5')
+    # plt.plot(yaxis, c_uik_array[int(6*M/10)], 'b:', label = 't = 0.6')
+    # plt.plot(yaxis, c_uik_array[int(7*M/10)], 'g:', label = 't = 0.7')
+    # plt.plot(yaxis, c_uik_array[int(8*M/10)], 'r:', label = 't = 0.8')
+    # plt.plot(yaxis, c_uik_array[int(9*M/10)], 'c:', label = 't = 0.9')
+    # plt.plot(yaxis, c_uik_array[M], 'r-', label = 't = 1')
+    #
+    # plt.plot(yaxis, true_uik_array[M], 'k-', label = 'exato')
+    # plt.legend()
+    # plt.xlabel('Posição na barra')
+    # plt.ylabel('temperatura')
+    #
+    # plt.show()
+
+
+
+    print(temp - time.time())
 
 
 
