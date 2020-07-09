@@ -156,12 +156,13 @@ def ldl_solver(L_array, D_array, RS_array, N, X3):
 
 def E2 (T_uik_array, ak_array, p_uik_array, Dx):
     soma = 0.0
-    for i in range(1, len(T_uik_array[0]) - 1):
+    xxx = 1/(len(T_uik_array[0]) + 1)
+    for i in range(0, len(T_uik_array[0])):
         somaak = 0.0
         for k in range(len(ak_array)):
             somaak += ak_array[k]*p_uik_array[k][i]
         soma += (T_uik_array[0][i] - somaak)**2
-    return math.sqrt(Dx*(soma))
+    return np.sqrt(Dx*(soma))
 
 
 
@@ -406,7 +407,7 @@ def main():
             print("result")
             print(XR_array)
 
-            E = E2(T_uik_array,ak_array, p_uik_array, Dx)
+            E = E2(T_uik_array,XR_array, p_uik_array, Dx)
             print("eerr/: ", E)
 
 
