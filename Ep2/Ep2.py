@@ -48,35 +48,35 @@ def gh(x, p, h):
 
 #exercicio 2
 @jit(nopython=True)
-def Decomp_LD(A_P_arrary, A_S_arrary, L_arrary, D_arrary, N):
-    D_arrary[0] = A_P_arrary[0]
+def Decomp_LD(A_P_array, A_S_array, L_array, D_array, N):
+    D_array[0] = A_P_array[0]
     for i in range(1, N - 1):
-        L_arrary[i] = A_S_arrary[i]/D_arrary[i - 1]
-        D_arrary[i] = A_P_arrary[i] - L_arrary[i]**2*D_arrary[i - 1]
+        L_array[i] = A_S_array[i]/D_array[i - 1]
+        D_array[i] = A_P_array[i] - L_array[i]**2*D_array[i - 1]
 
 
 @jit(nopython=True)
-def Solving_LD(L_arrary, D_arrary, b_array, N, X3):
+def Solving_LD(L_array, D_array, b_array, N, X3):
 
     X1 = np.zeros((N - 1), dtype = np.float64)
     X2 = np.zeros((N - 1), dtype = np.float64)
 
     X1[0] = b_array[0]
     for i in range(1, N - 1):
-        X1[i] = b_array[i] - L_arrary[i]*X1[i - 1]
+        X1[i] = b_array[i] - L_array[i]*X1[i - 1]
 
 
     for i in range(N - 1):
-        X2[i] = X1[i]/D_arrary[i]
+        X2[i] = X1[i]/D_array[i]
 
 
     X3[N - 2] = X2[N - 2]
     for i in range(N - 3, -1, -1):
-        X3[i] = X2[i] - L_arrary[i + 1]*X3[i + 1]
+        X3[i] = X2[i] - L_array[i + 1]*X3[i + 1]
 
 
 @jit
-def crankNicolson(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, Dt, Dx, lambd, pk):
+def crankNicolson(A_P_array, A_S_array, L_array, D_array, uik_array, N, M, Dt, Dx, lambd, pk):
 
     b_array = np.zeros((N - 1), dtype = np.float64)
     X3 = np.zeros((N - 1), dtype = np.float64)
@@ -92,10 +92,14 @@ def crankNicolson(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, D
             else:
                 b_array[i] = (Dt/2)*(f(Dx*(i + 1), Dt*(k + 1), Dx, pk) + f(Dx*(i + 1), Dt*k, Dx, pk)) + (1 - lambd)*uik_array[k][i + 1] + (lambd/2)*(uik_array[k][i] + uik_array[k][i + 2])
 
-        Solving_LD(L_arrary, D_arrary, b_array, N, X3)
+        Solving_LD(L_array, D_array, b_array, N, X3)
         for t in range(N - 1):
             uik_array[k + 1][t + 1] = X3[t]
 
+
+#######################################################
+##### EP 2
+########################################################
 
 def normalSystemArrange (p_uik_array, T_uik_array, NS_array, RS_array):
     for i in range(len(RS_array)):
@@ -104,6 +108,55 @@ def normalSystemArrange (p_uik_array, T_uik_array, NS_array, RS_array):
             NS_array[t][i] = NS_array[i][t]
 
             RS_array[i] = np.dot(T_uik_array, p_uik_array[i])
+
+
+def ldl_decomp(n, A_array, L_array, D_array):
+	#loop inicial de construção das matrizes L e D
+	v = []
+	for i in range(0, n):
+		v.append(0)
+		for j in range(0, n):
+			D_array[i] = A_array[i][i]
+			L_array[i][j] = A_array[i][j]/D_array[i]
+	for i in range(0, n):
+		soma = 0
+		for j in range(0, i):
+			v[j] = L_array[i][j] * D_array[j]
+			soma = soma + L_array[i][j] * v[j]
+		D_array[i] = A_array[i][i] - soma
+		for j in range(0, n):
+			soma1 = 0
+			for k in range (0, i):
+				soma1 = soma1 + L_array[j][k] * v[k]
+			L_array[j][i] = (A_array[j][i] - soma1)/D_array[i]
+
+
+
+def ldl_solver(L_array, D_array, RS_array, N, X3):
+
+    X1 = np.zeros((N), dtype = np.float64)
+    X2 = np.zeros((N), dtype = np.float64)
+
+    X1[0] = RS_array[0]
+    for i in range(1, N):
+        soma_l = 0
+        for j in range(i):
+            soma_l += L_array[i][j]*X1[j]
+        X1[i] = (RS_array[i] - soma_l)
+
+    for i in range(N):
+        X2[i] = X1[i]/D_array[i]
+
+
+    X3[N - 1] = X2[N - 1]
+    print(X3)
+    for i in range(N - 2, -1, -1):
+        soma_l = 0
+        for j in range(i+1, N):
+            soma_l += X3[j]*np.transpose(L_array)[i][j]
+        X3[i] = X2[i] - soma_l
+
+
 
 
 
@@ -149,10 +202,14 @@ def main():
             #matriz de erros
             eik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
 
-            A_P_arrary = np.zeros((N - 1), dtype = np.float64)
-            A_S_arrary = np.zeros((N - 1), dtype = np.float64)
-            D_arrary = np.zeros((N - 1), dtype = np.float64)
-            L_arrary = np.zeros((N - 1), dtype = np.float64)
+            A_P_array = np.zeros((N - 1), dtype = np.float64)
+            A_S_array = np.zeros((N - 1), dtype = np.float64)
+            D_array = np.zeros((N - 1), dtype = np.float64)
+            L_array = np.zeros((N - 1), dtype = np.float64)
+
+            DR_array = np.zeros((nf), dtype = np.float64)
+            LR_array = np.zeros((nf, nf), dtype = np.float64)
+            XR_array = np.zeros((nf), dtype = np.float64)
 
             NS_array = np.zeros((nf, nf), dtype = np.float64)
             RS_array = np.zeros((nf), dtype = np.float64)
@@ -160,9 +217,9 @@ def main():
 
 
             for i in range(N - 1):
-                A_P_arrary[i] = 1 + lambd
+                A_P_array[i] = 1 + lambd
             for i in range(1, N - 1):
-                A_S_arrary[i] = -lambd/2
+                A_S_array[i] = -lambd/2
 
 
             #COndicoes inicias
@@ -174,12 +231,12 @@ def main():
                 uik_array[k][N] = 0
 
             #resolvendo euler implicito
-            Decomp_LD(A_P_arrary, A_S_arrary, L_arrary, D_arrary, N)
+            Decomp_LD(A_P_array, A_S_array, L_array, D_array, N)
 
 
-            #building A_arrary
+            #building A_array
             for i in range(nf):
-                crankNicolson(A_P_arrary, A_S_arrary, L_arrary, D_arrary, uik_array, N, M, Dt, Dx, lambd, pk_array[i])
+                crankNicolson(A_P_array, A_S_array, L_array, D_array, uik_array, N, M, Dt, Dx, lambd, pk_array[i])
                 T_uik_array += ak_array[i]*uik_array[M]
                 p_uik_array[i] = uik_array[M]
 
@@ -187,6 +244,10 @@ def main():
             normalSystemArrange(p_uik_array, T_uik_array, NS_array, RS_array)
             print(NS_array)
             print(RS_array)
+            ldl_decomp(nf, NS_array, LR_array, DR_array)
+            ldl_solver(LR_array, DR_array, RS_array, nf, XR_array)
+            print("result")
+            print(XR_array)
 
 
             # yaxis = np.arange(N+1)
