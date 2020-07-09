@@ -16,6 +16,7 @@ import os
 import sys
 import pathlib
 from numba import jit
+import random
 
 
 T = 1 #Ex 1
@@ -407,6 +408,94 @@ def main():
 
             E = E2(T_uik_array,ak_array, p_uik_array, Dx)
             print("eerr/: ", E)
+
+
+    elif(a == 'd'):
+        Nlist = [128]#, 256, 512, 1024]
+        f = open("Arquivo teste para o EP2.txt", "r")
+        pk_array = f.readline().split()
+        ak_array = np.zeros(len(pk_array), dtype = np.float64)
+        for l in Nlist:
+            N = l
+            M = N
+            nf = len(pk_array)
+            Dx = X/N
+            Dt = T/M
+            lambd = Dt/(Dx*Dx)
+            print("N = ", N)
+            print("M = ", M)
+            print("Dx = ", Dx)
+            print("Dt = ", Dt)
+            print("lambda = ", lambd)
+            print("nf = ", nf)
+            print("pk = ", pk_array)
+            uik_array = np.zeros((M + 1, N + 1), dtype = np.float64)  #euler uik
+            T_uik_array = np.zeros((1, N + 1), dtype = np.float64) #uik real
+            p_uik_array = np.zeros((nf, N + 1), dtype = np.float64)
+            #matriz de erros
+            eik_array = np.zeros((M + 1, N + 1), dtype = np.float64)
+
+            A_P_array = np.zeros((N - 1), dtype = np.float64)
+            A_S_array = np.zeros((N - 1), dtype = np.float64)
+            D_array = np.zeros((N - 1), dtype = np.float64)
+            L_array = np.zeros((N - 1), dtype = np.float64)
+
+            DR_array = np.zeros((nf), dtype = np.float64)
+            LR_array = np.zeros((nf, nf), dtype = np.float64)
+            XR_array = np.zeros((nf), dtype = np.float64)
+
+            NS_array = np.zeros((nf, nf), dtype = np.float64)
+            RS_array = np.zeros((nf), dtype = np.float64)
+
+
+            for i in range(N - 1):
+                A_P_array[i] = 1 + lambd
+            for i in range(1, N - 1):
+                A_S_array[i] = -lambd/2
+
+
+            #COndicoes inicias
+            for i in range(N + 1):
+                uik_array[0][i] = 0
+            #condicao de contorno
+            for k in range(1, M + 1):
+                uik_array[k][0] = 0
+                uik_array[k][N] = 0
+
+            Decomp_LD(A_P_array, A_S_array, L_array, D_array, N)
+            #building A_array
+            for i in range(nf):
+                crankNicolson(A_P_array, A_S_array, L_array, D_array, uik_array, N, M, Dt, Dx, lambd, float(pk_array[i]))
+                p_uik_array[i] = uik_array[M]
+
+
+            t = 0
+            i = 0
+            T_uik_array[0][i] = float(f.readline())
+            i = 1
+            t = 1
+            for x in f:
+                if (t%(2048/l)) == 0:
+                    T_uik_array[0][i] = float(x)*(1.0 + (0.01*(random.random() - 0.5)*2))
+                    i = i + 1
+                t = t + 1
+
+            normalSystemArrange(p_uik_array, T_uik_array, NS_array, RS_array)
+            print(NS_array)
+            print(RS_array)
+            ldl_decomp(nf, NS_array, LR_array, DR_array)
+            ldl_solver(LR_array, DR_array, RS_array, nf, XR_array)
+            print("result")
+            print(XR_array)
+
+            E = E2(T_uik_array,ak_array, p_uik_array, Dx)
+            print("eerr/: ", E)
+            yaxis = np.arange(N+1)
+
+            plt.plot(yaxis, T_uik_array[0])
+            plt.show()
+
+
 
 
 
