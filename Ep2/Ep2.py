@@ -146,7 +146,6 @@ def ldl_solver(L_array, D_array, RS_array, N, X3):
 
 
     X3[N - 1] = X2[N - 1]
-    print(X3)
     for i in range(N - 2, -1, -1):
         soma_l = 0
         for j in range(i+1, N):
@@ -253,8 +252,10 @@ def main():
         for i in range(len(XR_array)):
             Aprox_array += XR_array[i]*p_uik_array[i]
 
-        plt.plot(xaxis, T_uik_array[0])
-        plt.plot(xaxis, Aprox_array, "r")
+        plt.title('Temperatura no instante final.')
+        plt.plot(xaxis, Aprox_array, "r", label="Aproximado")
+        plt.plot(xaxis, T_uik_array[0], label = "Real")
+        plt.legend()
         plt.show()
 
 
@@ -327,22 +328,22 @@ def main():
 
 
         normalSystemArrange(p_uik_array, T_uik_array, NS_array, RS_array)
-        print(NS_array)
-        print(RS_array)
         ldl_decomp(nf, NS_array, LR_array, DR_array)
         ldl_solver(LR_array, DR_array, RS_array, nf, XR_array)
         print("result")
         print(XR_array)
 
         E = E2(T_uik_array,XR_array, p_uik_array, Dx)
-        print("eerr/: ", E)
+        print("erro: ", E)
         xaxis = np.arange(N+1)
         Aprox_array = np.zeros(N + 1, dtype = np.float64)
         for i in range(len(XR_array)):
             Aprox_array += XR_array[i]*p_uik_array[i]
 
-        plt.plot(xaxis, T_uik_array[0])
-        plt.plot(xaxis, Aprox_array, "r")
+        plt.title('Temperatura no instante final.')
+        plt.plot(xaxis, Aprox_array, "r", label="Aproximado")
+        plt.plot(xaxis, T_uik_array[0], label = "Real")
+        plt.legend()
         plt.show()
 
 
@@ -366,8 +367,8 @@ def main():
         print("Dx = ", Dx)
         print("Dt = ", Dt)
         print("lambda = ", lambd)
-        #print("nf = ", nf)
-        #print("pk = ", pk_array)
+        print("nf = ", nf)
+        print("pk = ", pk_array)
         uik_array = np.zeros((M + 1, N + 1), dtype = np.float64)  #euler uik
         T_uik_array = np.zeros((1, N + 1), dtype = np.float64) #uik real
         p_uik_array = np.zeros((nf, N + 1), dtype = np.float64)
@@ -428,14 +429,17 @@ def main():
         print(XR_array)
 
         E = E2(T_uik_array,XR_array, p_uik_array, Dx)
-        print("eerr/: ", E)
+        print("erro: ", E)
         xaxis = np.arange(N+1)
         Aprox_array = np.zeros(N + 1, dtype = np.float64)
         for i in range(len(XR_array)):
             Aprox_array += XR_array[i]*p_uik_array[i]
 
-        plt.plot(xaxis, T_uik_array[0])
-        plt.plot(xaxis, Aprox_array, "r")
+
+        plt.title('Temperatura no instante final.')
+        plt.plot(xaxis, Aprox_array, "r", label="Aproximado")
+        plt.plot(xaxis, T_uik_array[0], label = "Real")
+        plt.legend()
         plt.show()
 
 
@@ -511,22 +515,24 @@ def main():
             t = t + 1
 
         normalSystemArrange(p_uik_array, T_uik_array, NS_array, RS_array)
-        print(NS_array)
-        print(RS_array)
+        #print(NS_array)
+        #print(RS_array)
         ldl_decomp(nf, NS_array, LR_array, DR_array)
         ldl_solver(LR_array, DR_array, RS_array, nf, XR_array)
         print("result")
         print(XR_array)
 
         E = E2(T_uik_array,XR_array, p_uik_array, Dx)
-        print("eerr/: ", E)
+        print("erro: ", E)
         xaxis = np.arange(N+1)
         Aprox_array = np.zeros(N + 1, dtype = np.float64)
         for i in range(len(XR_array)):
             Aprox_array += XR_array[i]*p_uik_array[i]
 
-        plt.plot(xaxis, T_uik_array[0])
-        plt.plot(xaxis, Aprox_array, "r")
+        plt.title('Temperatura no instante final.')
+        plt.plot(xaxis, Aprox_array, "r", label="Aproximado")
+        plt.plot(xaxis, T_uik_array[0], label = "Real")
+        plt.legend()
         plt.show()
 
 
