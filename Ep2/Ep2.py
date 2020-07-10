@@ -22,21 +22,23 @@ import random
 T = 1 #Ex 1
 X = 1
 
+
+###################################
+### EP1
+################################
+
 ##funcao qeu insere calor
-@jit(nopython=True)
 def f (x,t, Dx, pk):
     f = r(t)*gh(x, pk, Dx)
     return f
 
 
 #funcao r(t) do item c
-@jit(nopython=True)
 def r(t):
     r = 10*(1 + math.cos(5*t))
     return r
 
 #funcao gh(x) do item c
-@jit(nopython=True)
 def gh(x, p, h):
     if p-(h/2) <= x and x <= p+(h/2):
         g = (1/h)#*(1 - abs(x - p)*1/(h/2))
@@ -46,7 +48,6 @@ def gh(x, p, h):
 
 
 #exercicio 2
-@jit(nopython=True)
 def Decomp_LD(A_P_array, A_S_array, L_array, D_array, N):
     D_array[0] = A_P_array[0]
     for i in range(1, N - 1):
@@ -54,7 +55,6 @@ def Decomp_LD(A_P_array, A_S_array, L_array, D_array, N):
         D_array[i] = A_P_array[i] - L_array[i]**2*D_array[i - 1]
 
 
-@jit(nopython=True)
 def Solving_LD(L_array, D_array, b_array, N, X3):
 
     X1 = np.zeros((N - 1), dtype = np.float64)
@@ -74,7 +74,6 @@ def Solving_LD(L_array, D_array, b_array, N, X3):
         X3[i] = X2[i] - L_array[i + 1]*X3[i + 1]
 
 
-@jit
 def crankNicolson(A_P_array, A_S_array, L_array, D_array, uik_array, N, M, Dt, Dx, lambd, pk):
 
     b_array = np.zeros((N - 1), dtype = np.float64)
@@ -99,6 +98,8 @@ def crankNicolson(A_P_array, A_S_array, L_array, D_array, uik_array, N, M, Dt, D
 #######################################################
 ##### EP 2
 ########################################################
+
+#Essa função cria o sistema normal para encontrar a solução aproximada
 def normalSystemArrange (p_uik_array, T_uik_array, NS_array, RS_array):
     for i in range(len(RS_array)):
         for t in range(i, len(RS_array)):
@@ -108,6 +109,8 @@ def normalSystemArrange (p_uik_array, T_uik_array, NS_array, RS_array):
             RS_array[i] = np.dot(T_uik_array, p_uik_array[i])
 
 
+
+#Esta nova funcao de fatoracao LDLt contempla sistemas nao esparços, diferente da utilizada no EP1, que é mantida como legado e utilização do EP1
 def ldl_decomp(n, A_array, L_array, D_array):
 	#loop inicial de construção das matrizes L e D
 	v = []
@@ -128,6 +131,10 @@ def ldl_decomp(n, A_array, L_array, D_array):
 				soma1 = soma1 + L_array[j][k] * v[k]
 			L_array[j][i] = (A_array[j][i] - soma1)/D_array[i]
 
+
+
+#Esta funcao resolve o sistema normal e encontra os valores aproximados do peso das fronteiras
+#A resolucao e feita em 3 etapaas, usando das composicoes simples das fatoracao LDLt para solucionar o problema
 
 def ldl_solver(L_array, D_array, RS_array, N, X3):
 
@@ -153,9 +160,10 @@ def ldl_solver(L_array, D_array, RS_array, N, X3):
         X3[i] = X2[i] - soma_l
 
 
+
+#Calcula o erro aproximado
 def E2 (T_uik_array, ak_array, p_uik_array, Dx):
     soma = 0.0
-    xxx = 1/(len(T_uik_array[0]) + 1)
     for i in range(0, len(T_uik_array[0])):
         somaak = 0.0
         for k in range(len(ak_array)):
